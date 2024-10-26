@@ -1,0 +1,31 @@
+# Ignoriere ROS 2 build-, install- und log-Verzeichnisse
+/build/
+/install/
+/log/
+
+# Ignoriere Python-Bytecode-Dateien
+__pycache__/
+*.py[cod]
+
+# Ignoriere temporäre Dateien und Ordner
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignoriere CMake-Ergebnisse
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Ignoriere JetBrains-IDE-Projektdateien (z. B. CLion)
+.idea/
+*.iml
+
+# Ignoriere VSCode-Projektdateien
+.vscode/
+
+# Ignoriere andere ROS 2-Build-Artefakte, falls vorhanden
+.colcon/
