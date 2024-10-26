@@ -5,6 +5,6 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='demo_nodes_cpp',
-            executable='listener' # node to execute
+            executable='talker' # node to execute
         )
     ])
