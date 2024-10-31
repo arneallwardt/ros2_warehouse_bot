@@ -11,10 +11,12 @@ def generate_launch_description():
     # Specify the name of the package and path to xacro file within the package
     pkg_name = 'test_package'
     file_subpath = 'description/example_robot.urdf.xacro'
+    path_to_package = os.path.expanduser('~/ros_workspaces/ros2_warehouse_bot/src/test_package/')
 
 
     # Use xacro to process the file
-    xacro_file = os.path.join(get_package_share_directory(pkg_name),file_subpath)
+    # xacro_file = os.path.join(get_package_share_directory(pkg_name),file_subpath)
+    xacro_file = os.path.join(path_to_package,file_subpath)
     robot_description_raw = xacro.process_file(xacro_file).toxml()
 
 
