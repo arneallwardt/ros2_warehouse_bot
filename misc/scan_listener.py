@@ -3,16 +3,25 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 class ScanListener(Node):
     def __init__(self):
         super().__init__('scan_listener')
-        # Subscriber für das /scan Topic
+
+        # Anpassung der QoS-Einstellungen für Best Effort und Keep Last
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10  # nur die letzten 10 Nachrichten speichern
+        )
+
+        # Subscriber für das /scan Topic mit angepasstem QoS-Profil
         self.subscription = self.create_subscription(
             LaserScan,
             '/scan',
             self.listener_callback,
-            10  # QoS History Depth
+            qos_profile
         )
         self.subscription  # verhindern, dass Python den Subscriber vorzeitig abräumt
         self.get_logger().info("ScanListener Node gestartet, wartet auf /scan-Daten.")
