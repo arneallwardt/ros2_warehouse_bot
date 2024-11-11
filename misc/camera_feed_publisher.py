@@ -14,11 +14,11 @@ class CameraFeedPublisher(Node):
             topic='camera/live_feed', 
             qos_profile=10) # profile which sets the connection quality
         self.timer = self.create_timer(0.1, self.timer_callback)
-        
+        self.camera_idx = 1
         
         # initialize camera and set resolution to 640x480
         self.get_logger().info('Initializing camera...')
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(self.camera_idx)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 

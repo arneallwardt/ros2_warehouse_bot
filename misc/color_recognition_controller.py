@@ -14,7 +14,7 @@ class ColorRecognitionNode(Node):
 
         self.camera_feed_subscription = self.create_subscription(
             msg_type=Image,
-            topic='camera/live_feed',
+            topic='camera/image_raw',
             callback=self.listener_callback,
             qos_profile=10
         )
