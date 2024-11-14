@@ -15,12 +15,12 @@
 
 ### Mapping
 - *sim_time:=true ONLY FOR GAZEBO*
-- `mode: mapping` in mapper_params_online_async.yaml
+- `mode: mapping` and `scan_topic: /scan/filtered` in mapper_params_online_async.yaml
 - launch gazebo: `ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py`
     - if it is not working try `source /usr/share/gazebo/setup.sh`
 - start teleoperating node: `ros2 run turtlebot3_teleop teleop_keyboard`
+- launch scan filtering node (only when arm is mounted on robot): `python3 ros2_warehouse_bot/misc/scan_filter.py`
 - start mapping with slam toolbox: `ros2 launch slam_toolbox online_async_launch.py slam_params_file:=<path_to_ws>/src/test_package/config/mapper_params_online_async.yaml use_sim_time:=true`
-    - may require running `ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 map odom`
 - run rviz: `rviz2`
     - set *Fixed Frame = map* in rviz
 

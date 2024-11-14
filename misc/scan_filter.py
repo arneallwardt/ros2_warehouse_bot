@@ -17,7 +17,7 @@ class ScanFilter(Node):
         # Subscriber für das ursprüngliche /scan/raw Topic
         self.subscription = self.create_subscription(
             LaserScan,
-            '/scan/raw',
+            '/scan',
             self.scan_callback,
             qos_profile
         )
@@ -28,7 +28,7 @@ class ScanFilter(Node):
     def scan_callback(self, msg):
         # Beispiel-Filter: Entferne alle Werte zwischen 160 und 200 Grad
         filtered_ranges = list(msg.ranges)
-        for i in range(160, 200):
+        for i in range(90, 360): # 0 starts on the left of the bot and continues clockwise
             filtered_ranges[i] = float('inf')  # Setze auf "unendlich" (kein Hindernis)
         
         msg.ranges = filtered_ranges
