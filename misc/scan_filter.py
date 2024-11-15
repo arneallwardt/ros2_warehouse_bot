@@ -7,9 +7,14 @@ class ScanFilter(Node):
     def __init__(self):
         super().__init__('scan_filter')
 
-        # QoS-Einstellungen, die zu TurtleBot3s /scan-Topic passen
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+        qos_profile_sub = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT, # needed to get infos from /scan
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        qos_profile_pub = QoSProfile(
+            reliability=QoSReliabilityPolicy.RELIABLE, # needed so that rviz can read it
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=10
         )
@@ -19,18 +24,18 @@ class ScanFilter(Node):
             LaserScan,
             '/scan',
             self.scan_callback,
-            qos_profile
+            qos_profile_sub
         )
         
         # Publisher für das gefilterte /scan Topic
-        self.publisher = self.create_publisher(LaserScan, '/scan/filtered', qos_profile)
+        self.publisher = self.create_publisher(LaserScan, '/scan/filtered', qos_profile_pub)
 
     def scan_callback(self, msg):
         # Beispiel-Filter: Entferne alle Werte zwischen 160 und 200 Grad
         filtered_ranges = list(msg.ranges)
-        for i in range(90, 360): # 0 starts on the left of the bot and continues clockwise
+        for i in range(90, 270): # 0 starts on the left of the bot and continues clockwise
             filtered_ranges[i] = float('inf')  # Setze auf "unendlich" (kein Hindernis)
-        
+
         msg.ranges = filtered_ranges
         self.publisher.publish(msg)
 
