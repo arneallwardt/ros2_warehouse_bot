@@ -1,6 +1,9 @@
 # Autonomous warehouse robot with ROS2
 
 ## Set Up
+
+### General 
+
 - [Install ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) (only for Ubuntu 22.04.)
 - Add Packages for TurtleBot3: `sudo apt install ros-humbe-turtlebot3*`
 - Install Gazebo: `sudo apt install ros-humble-gazebo-ros-pkgs`
@@ -9,7 +12,12 @@
 - Install twist_mux: `sudo apt install ros-humble-twist-mux`
 - Add xacro support: `sudo apt install ros-humble-xacro`
 - Install GUI for joint-state-publisher: `sudo apt install ros-humble-joint-state-publisher-gui`
+
+### Package specific
+
+- Check for updates in the package: `rosdep install -i --from-path src --rosdistro humble -y`
 - Build package (execute from inside the workspace): `colcon build —symlink-install`
+- Source the package: `source install/setup.bash`
 
 ## Using slam_toolbox / amcl with nav2
 

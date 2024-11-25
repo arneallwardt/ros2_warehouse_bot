@@ -23,6 +23,8 @@ setup(
             # here, the entry points for nodes that belong to this package are defined
             'scan_filter = warehouse_bot.scan_filter:main',
             'scan_listener = warehouse_bot.scan_listener:main',
+            'service = warehouse_bot.service_member_function:main',
+            'client = warehouse_bot.client_member_function:main',
         ],
     },
 )
