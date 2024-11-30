@@ -26,7 +26,8 @@ setup(
             'service = warehouse_bot.service_member_function:main',
             'client = warehouse_bot.client_member_function:main',
             'publisher = warehouse_bot.publisher_member_function:main',
-            'subscriber = warehouse_bot.subscriber_member_function:main'
+            'subscriber = warehouse_bot.subscriber_member_function:main',
+            'address_publisher = warehouse_bot.adress_book_publisher:main'
         ],
     },
 )
