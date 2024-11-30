@@ -19,7 +19,7 @@ class ScanListener(Node):
         # Subscriber für das /scan Topic mit angepasstem QoS-Profil
         self.subscription = self.create_subscription(
             LaserScan,
-            '/scan',
+            '/scan/filtered',
             self.listener_callback,
             qos_profile
         )

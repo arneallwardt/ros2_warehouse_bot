@@ -25,14 +25,7 @@ setup(
         'console_scripts': [
             # here, the entry points for nodes that belong to this package are defined
             'scan_filter = warehouse_bot.scan_filter:main',
-            'scan_listener = warehouse_bot.scan_listener:main',
-            'service = warehouse_bot.service_member_function:main',
-            'client = warehouse_bot.client_member_function:main',
-            'publisher = warehouse_bot.publisher_member_function:main',
-            'subscriber = warehouse_bot.subscriber_member_function:main',
-            'address_publisher = warehouse_bot.adress_book_publisher:main',
-            'fib_action_server = warehouse_bot.fibonacci_action_server:main',
-            'fib_action_client = warehouse_bot.fibonacci_action_client:main'
+            'scan_listener = warehouse_bot.scan_listener:main'
         ],
     },
 )
