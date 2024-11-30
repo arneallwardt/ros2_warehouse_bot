@@ -19,6 +19,39 @@
 - Build package (execute from inside the workspace): `colcon build —symlink-install`
 - Source the package: `source install/setup.bash`
 
+### Finding errors
+- run `ros2 doctor` to check for errors. If you get `All <n> checks passed` as a result, you're good to go.
+- run `ros2 doctor --report` to receive a full report
+
+## ROS2 packages
+
+- Nodes are definded in `src/<package_name>/<package_name>`
+
+### package.xml
+
+This file contains all the necessary information about a package. Including all the dependencies needed to build / test / run the code. Types of dependencies are the following:
+- **test_depend**: used in testing the code
+- ** build_depend**: used in building the code
+- **build_export_depend**: needed by headers in the code exports
+- **exec_depend**: only used when running the code
+- **depend**: for mixed purposes; covers build, export and execution time dependencies
+
+Every library which is imported inside a .py file, must be specified as a dependency in the `package.xml`!
+
+You can check if all dependencies are available and install them if required by running `rosdep install -i --from-path src --rosdistro <your_ros_distro> -y`
+
+### setup.py
+
+This file contains information about entry points and launch files. If you want to execute nodes / services with `ros2 run`, they need to be specified here either as `entry_points` (single nodes) or `data_files` (launch files).
+
+### Running a package
+- navigate to workspace directory
+- build packages: `colcon build`
+- source underlying: `source install/setup.bash`
+- run
+  - single node: `ros2 run <package_name> <node_name>` (NOTE: the `node_name` is specified in `setup.py` `entry_points`)
+  - launch file: `ros2 run <package_name> <launch_file>`
+
 ## Using slam_toolbox / amcl with nav2
 
 ### Mapping
