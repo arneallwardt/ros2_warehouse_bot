@@ -25,6 +25,8 @@ setup(
             'scan_listener = warehouse_bot.scan_listener:main',
             'service = warehouse_bot.service_member_function:main',
             'client = warehouse_bot.client_member_function:main',
+            'publisher = warehouse_bot.publisher_member_function:main',
+            'subscriber = warehouse_bot.subscriber_member_function:main'
         ],
     },
 )
