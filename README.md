@@ -61,7 +61,7 @@ This file contains information about entry points and launch files. If you want 
     - if it is not working try `source /usr/share/gazebo/setup.sh`
 - start teleoperating node: `ros2 run turtlebot3_teleop teleop_keyboard`
 - launch scan filtering node (only when arm is mounted on robot): `python3 ros2_warehouse_bot/misc/scan_filter.py`
-- start mapping with slam toolbox: `ros2 launch slam_toolbox online_async_launch.py slam_params_file:=<path_to_ws>/src/test_package/config/mapper_params_online_async.yaml use_sim_time:=true`
+- start mapping with slam toolbox: `ros2 launch slam_toolbox online_async_launch.py slam_params_file:=<path_to_ws>/src/warehouse_bot/config/mapper_params_online_async.yaml use_sim_time:=true`
 - run rviz: `rviz2`
     - set *Fixed Frame = map* in rviz
 
@@ -87,11 +87,12 @@ This file contains information about entry points and launch files. If you want 
 
 ### Navigation 
 - *sim_time:=true ONLY FOR GAZEBO*
-- start twist_mux (because teleop and nav2 publish on different topics): `ros2 run twist_mux twist_mux --ros-args --params-file <path_to_ws>/src/test_package/config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped`
+- start twist_mux (because teleop and nav2 publish on different topics): `ros2 run twist_mux twist_mux --ros-args --params-file <path_to_ws>/src/warehouse_bot/config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped`
+- start scan_filter: `ros2 launch warehouse_bot demo_launch.py`
 - start gazebo: `ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py`
 - start rviz: `rviz2`
 - **start localization**
-    - slam_toolbox: `ros2 launch slam_toolbox localization_launch.py slam_params_file:=<path_to_ws>/src/test_package/config/mapper_params_localization.yaml use_sim_time:=true`
+    - slam_toolbox: `ros2 launch slam_toolbox localization_launch.py slam_params_file:=~/<path_to_ws>/src/warehouse_bot/config/mapper_params_localization.yaml use_sim_time:=true`
     - **OR** nav2: `ros2 launch nav2_bringup localization_launch.py map:=/home/arne/ros_workspaces/ros2_warehouse_bot/maps/old/turtlebot3_house_save.yaml use_sim_time:=true`
 - start nav2: `ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true`
     - default parameters for nav2 are set up for *TurtleBot3*, no need to change anything
