@@ -31,10 +31,9 @@ class ScanFilter(Node):
         self.publisher = self.create_publisher(LaserScan, '/scan/filtered', qos_profile_pub)
 
     def scan_callback(self, msg):
-        # Beispiel-Filter: Entferne alle Werte zwischen 160 und 200 Grad
         filtered_ranges = list(msg.ranges)
-        for i in range(90, 270): # 0 starts on the left of the bot and continues clockwise
-            filtered_ranges[i] = float('inf')  # Setze auf "unendlich" (kein Hindernis)
+        for i in range(80, 280): 
+            filtered_ranges[i] = float('inf')  # set to infinity -> no obstacle
 
         msg.ranges = filtered_ranges
         self.publisher.publish(msg)
