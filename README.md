@@ -97,4 +97,10 @@ This file contains information about entry points and launch files. If you want 
 - start nav2: `ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true`
     - default parameters for nav2 are set up for *TurtleBot3*, no need to change anything
 - optional: add *costmap* to rviz: Map -> *Topic = /global_costmap/costmap* / *Color Scheme = costmap*
-- 
+
+### Quick
+- twist-mux: `ros2 run twist_mux twist_mux --ros-args --params-file /home/kilab/ros2_warehouse_bot/src/warehouse_bot/config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped`
+- scan_filter: `ros2 run warehouse_bot scan_filter`
+- rviz: `ros2 run rviz2 rviz2 -d $(ros2 pkg prefix nav2_bringup)/share/nav2_bringup/rviz/nav2_default_view.rviz`
+- slam_toolbox: `ros2 launch slam_toolbox localization_launch.py slam_params_file:=/home/kilab/ros2_warehouse_bot/src/warehouse_bot/config/mapper_params_localization_2.yaml`
+- nav2: `ros2 launch nav2_bringup navigation_launch.py`
