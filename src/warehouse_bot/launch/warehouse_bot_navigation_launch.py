@@ -21,8 +21,8 @@ def generate_launch_description():
         # nav2
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(nav2_launch_file),
-            launch_arguments={
-                'params_file': nav2_params_file
-            }.items()
+            #launch_arguments={
+            #    'params_file': nav2_params_file
+            #}.items()
         ),   
     ])

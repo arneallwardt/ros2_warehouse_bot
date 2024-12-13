@@ -70,7 +70,7 @@ This file contains information about entry points and launch files. If you want 
     - save → old format to use with external libs like nav2
     - serialize → new format to use with slam_toolbox
 
-### Navigation (slam_toolbox and)
+### Navigation (slam_toolbox and nav2)
 - you might want to build the `warehouse_bot` package first by executing `colcon build` in the packages root directory 
 - remember to execute `source /home/kilab/ros2_warehouse_bot/install/setup.bash` in every shell you open
 - start the bot itself (in bots shell): `ros2 launch turtlebot3_bringup robot.launch.py`
