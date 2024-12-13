@@ -52,7 +52,7 @@ This file contains information about entry points and launch files. If you want 
   - single node: `ros2 run <package_name> <node_name>` (NOTE: the `node_name` is specified in `setup.py` `entry_points`)
   - launch file: `ros2 run <package_name> <launch_file>`
 
-## Using slam_toolbox / amcl with nav2
+## Using slam_toolbox and nav2
 
 ### Mapping
 - *sim_time:=true ONLY FOR GAZEBO*
@@ -70,37 +70,9 @@ This file contains information about entry points and launch files. If you want 
     - save → old format to use with external libs like nav2
     - serialize → new format to use with slam_toolbox
 
-### Localization
-- *sim_time:=true ONLY FOR GAZEBO*
-- **mapper_params_localization.yaml** (if slam_toolbox is used)
-    - `mode: localization`
-    - `map_file_name: <path_to_ws>/maps/new/turtlebot3_house_serialize`
-    - `map_start_at_dock: true` (= start, where bot starded while mapping)
-- run map server to publish map on topic /map: `ros2 run nav2_map_server map_server --ros-args -p yaml_filename:=<path_to_ws>/maps/old/turtlebot3_house_save.yaml -p use_sim_time:=true`
-    - start map_server: `ros2 run nav2_util lifecycle_bringup map_server`
-- start gazebo: `ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py`
-- start rviz: `rviz2`
-    - if map is not loaded: Map -> Topic -> Durability Profile -> Transient Local
-- run amcl: `ros2 run nav2_amcl amcl --ros-args -p use_sim_time:=true`
-    - start amcl: `ros2 run nav2_util lifecycle_bringup amcl`
-    - set initial pose in rviz
-
-### Navigation 
-- *sim_time:=true ONLY FOR GAZEBO*
-- start twist_mux (because teleop and nav2 publish on different topics): `ros2 run twist_mux twist_mux --ros-args --params-file <path_to_ws>/src/warehouse_bot/config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped`
-- start scan_filter: `ros2 launch warehouse_bot demo_launch.py`
-- start gazebo: `ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py`
-- start rviz: `rviz2`
-- **start localization**
-    - slam_toolbox: `ros2 launch slam_toolbox localization_launch.py slam_params_file:=~/<path_to_ws>/src/warehouse_bot/config/mapper_params_localization.yaml use_sim_time:=true`
-    - **OR** nav2: `ros2 launch nav2_bringup localization_launch.py map:=/home/arne/ros_workspaces/ros2_warehouse_bot/maps/old/turtlebot3_house_save.yaml use_sim_time:=true`
-- start nav2: `ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true`
-    - default parameters for nav2 are set up for *TurtleBot3*, no need to change anything
-- optional: add *costmap* to rviz: Map -> *Topic = /global_costmap/costmap* / *Color Scheme = costmap*
-
-### Quick
-- twist-mux: `ros2 run twist_mux twist_mux --ros-args --params-file /home/kilab/ros2_warehouse_bot/src/warehouse_bot/config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped`
-- scan_filter: `ros2 run warehouse_bot scan_filter`
-- rviz: `ros2 run rviz2 rviz2 -d $(ros2 pkg prefix nav2_bringup)/share/nav2_bringup/rviz/nav2_default_view.rviz`
-- slam_toolbox: `ros2 launch slam_toolbox localization_launch.py slam_params_file:=/home/kilab/ros2_warehouse_bot/src/warehouse_bot/config/mapper_params_localization_2.yaml`
-- nav2: `ros2 launch nav2_bringup navigation_launch.py`
+### Navigation (slam_toolbox and)
+- you might want to build the `warehouse_bot` package first by executing `colcon build` in the packages root directory 
+- remember to execute `source /home/kilab/ros2_warehouse_bot/install/setup.bash` in every shell you open
+- start the bot itself (in bots shell): `ros2 launch turtlebot3_bringup robot.launch.py`
+- start localisation (including twist_mux, scan_filter, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_localization_launch.py`
+- start navigation: `ros2 launch warehouse_bot warehouse_bot_navigation_launch.py`
