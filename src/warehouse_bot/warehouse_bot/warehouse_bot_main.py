@@ -3,19 +3,55 @@ from rclpy.action import ActionClient
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
+import time
+from transitions import Machine
 
-class NavToPoseClient(Node):
+
+class WarehouseBotMain(Node):
     def __init__(self):
         super().__init__('nav_to_pose_client')
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
 
+        # state machine implementation
+        states = [
+            'idle',
+            'navigating',
+            'detecting_product',
+            'adjusting_position',
+            'grabbing_product',
+            'putting_down_product',
+            'error'
+        ]
+        self.machine = Machine(model=self, states=states, initial='idle')
+
+        # state transitions
+        self.machine.add_transition(trigger='start_idle', source='putting_down_product', dest='idle')
+        self.machine.add_transition(trigger='start_navigation', source=['idle', 'detecting_product', 'grabbing_product'], dest='navigating')
+        self.machine.add_transition(trigger='start_detecting_product', source=['navigating', 'adjusting_position', 'grabbing_product'], dest='detecting_product')
+        self.machine.add_transition(trigger='start_adjusting_position', source='detecting_product', dest='adjusting_position')
+        self.machine.add_transition(trigger='start_grabbing_product', source='adjusting_position', dest='grabbing_product')
+        self.machine.add_transition(trigger='start_detecting_product', source='navigating', dest='putting_down_product')
+        self.machine.add_transition(trigger='start_idle', source='putting_down_product', dest='idle')
+        self.machine.add_transition(trigger='error', source='*', dest='error')
+
+        # state callbacks
+        self.machine.on_enter_idle('log_state')
+        self.machine.on_enter_navigating('self.log_state')
+
+
         self.current_goal_pose = 0
 
         self.goal_poses = [
-            {'x': -1.418, 'y': 0.623, 'z': -0.126, 'w': 0.992},
-            {'x': -0.897, 'y': 1.194, 'z': 0.2227371335029602, 'w': 0.974},
-            {'x': -1.418, 'y': 0.623, 'z': -0.126, 'w': 0.992},
+            {'x': 1.614, 'y': 0.464, 'z': 0.0, 'w': 1.0},
+            {'x': 1.4335, 'y': -0.1385, 'z': 0.0, 'w': 0.9939},
+            {'x': 1.7028, 'y': -0.3628, 'z': 0.0, 'w': 0.9931},
+            {'x': 0.0, 'y': 0.0, 'z': 0.0, 'w': 0.0},
         ]
+
+
+    def log_state(self):
+        print(self.state)
+
 
     def get_next_pose(self):
 
@@ -64,6 +100,7 @@ class NavToPoseClient(Node):
         result = future.result().result
         if result is not None:
             self.get_logger().info('Bot has reached the goal pose!')
+            time.sleep(3)
         else:
             self.get_logger().error('Error while traveling to the goal pose.')
 
@@ -73,6 +110,7 @@ class NavToPoseClient(Node):
             self.send_goal(next_pose)
         else:
             self.get_logger().info('No more poses to visit')
+            self.start_idle()
 
 
     def feedback_callback(self, feedback_msg):
@@ -82,12 +120,13 @@ class NavToPoseClient(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = NavToPoseClient()
+    warehouse_bot_main = WarehouseBotMain()
 
-    pose = node.get_next_pose()
+    pose = warehouse_bot_main.get_next_pose()
 
-    node.send_goal(pose)
-    rclpy.spin(node)
+    warehouse_bot_main.start_navigation()
+    # warehouse_bot_main.send_goal(pose)
+    rclpy.spin(warehouse_bot_main)
 
     rclpy.shutdown()
 

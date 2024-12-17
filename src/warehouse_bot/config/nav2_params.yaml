@@ -118,7 +118,7 @@ controller_server:
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    goal_checker_plugins: ["precise_goal_checker"] # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
 
     # Progress checker parameters
@@ -128,17 +128,17 @@ controller_server:
       movement_time_allowance: 10.0
 
     # Goal checker parameters
-    # precise_goal_checker:
-    #   plugin: "nav2_controller::SimpleGoalChecker"
-    #   xy_goal_tolerance: 0.25 
-    #   yaw_goal_tolerance: 0.25
-    #   stateful: True
-
-    general_goal_checker:
-      stateful: True
+    precise_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.15 # possible param
-      yaw_goal_tolerance: 0.25 # possible param
+      xy_goal_tolerance: 0.05 
+      yaw_goal_tolerance: 0.20
+      stateful: True
+
+    # general_goal_checker:
+    #   stateful: True
+    #   plugin: "nav2_controller::SimpleGoalChecker"
+    #   xy_goal_tolerance: 0.05 # possible param
+    #   yaw_goal_tolerance: 0.25 # possible param
 
     # DWB parameters
     FollowPath:

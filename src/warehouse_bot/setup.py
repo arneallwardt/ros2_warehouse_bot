@@ -25,7 +25,7 @@ setup(
         'console_scripts': [
             # here, the entry points for nodes that belong to this package are defined
             'scan_filter = warehouse_bot.scan_filter:main',
-            'scan_listener = warehouse_bot.scan_listener:main'
+            'warehouse_bot_main = warehouse_bot.warehouse_bot_main:main'
         ],
     },
 )
