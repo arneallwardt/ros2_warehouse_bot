@@ -35,12 +35,12 @@ class WarehouseBotMain(Node):
         self.machine.add_transition(trigger='error', source='*', dest='error')
 
         # state callbacks
-        self.machine.on_enter_idle('log_state')
-        self.machine.on_enter_navigating('self.log_state')
+        self.machine.on_enter_navigating(self.navigate_to_next_pose)
+        self.machine.on_enter_idle(self.wait())
+        self.machine.on_enter_error(lambda: print('Error state'))
 
-
+        # pose information
         self.current_goal_pose = 0
-
         self.goal_poses = [
             {'x': 1.614, 'y': 0.464, 'z': 0.0, 'w': 1.0},
             {'x': 1.4335, 'y': -0.1385, 'z': 0.0, 'w': 0.9939},
@@ -48,9 +48,21 @@ class WarehouseBotMain(Node):
             {'x': 0.0, 'y': 0.0, 'z': 0.0, 'w': 0.0},
         ]
 
+    def wait(self):
+        print(f'Waiting. Current state: {self.state}')
+        time.sleep(3)
 
-    def log_state(self):
-        print(self.state)
+        self.current_goal_pose += 1
+        if self.current_goal_pose < len(self.goal_poses):
+            self.start_navigation()
+        else:
+            self.get_logger().info('No more poses to visit')
+            self.error()
+
+    def navigate_to_next_pose(self):
+        self.get_logger().info('Navigating to next pose')
+        pose = self.get_next_pose()
+        self.send_goal(pose)
 
 
     def get_next_pose(self):
@@ -68,6 +80,8 @@ class WarehouseBotMain(Node):
 
         return pose
 
+    def log_error(self):
+        self.get_logger().error('Error state')
 
     def send_goal(self, pose):
     
@@ -100,17 +114,10 @@ class WarehouseBotMain(Node):
         result = future.result().result
         if result is not None:
             self.get_logger().info('Bot has reached the goal pose!')
-            time.sleep(3)
+            self.start_idle()
         else:
             self.get_logger().error('Error while traveling to the goal pose.')
-
-        self.current_goal_pose += 1
-        if self.current_goal_pose < len(self.goal_poses):
-            next_pose = self.get_next_pose()
-            self.send_goal(next_pose)
-        else:
-            self.get_logger().info('No more poses to visit')
-            self.start_idle()
+            self.error()
 
 
     def feedback_callback(self, feedback_msg):
@@ -122,10 +129,9 @@ def main(args=None):
     rclpy.init(args=args)
     warehouse_bot_main = WarehouseBotMain()
 
-    pose = warehouse_bot_main.get_next_pose()
-
+    # switch to navigation state
     warehouse_bot_main.start_navigation()
-    # warehouse_bot_main.send_goal(pose)
+    
     rclpy.spin(warehouse_bot_main)
 
     rclpy.shutdown()
