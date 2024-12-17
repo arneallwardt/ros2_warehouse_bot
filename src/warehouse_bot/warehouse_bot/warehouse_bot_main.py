@@ -11,6 +11,16 @@ class WarehouseBotMain(Node):
     def __init__(self):
         super().__init__('nav_to_pose_client')
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+        self.LOG_FEEDBACK = False
+
+        # pose information
+        self.current_goal_pose = 0
+        self.goal_poses = [
+            {'x': 1.45, 'y': 0.45, 'z': 0.0, 'w': 1.0},
+            {'x': 1.45, 'y': 0.0, 'z': 0.0, 'w': 1.0},
+            {'x': 1.45, 'y': -0.45, 'z': 0.0, 'w': 1.0},
+            {'x': 0.0, 'y': 0.0, 'z': 0.0, 'w': 0.0},
+        ]
 
         # state machine implementation
         states = [
@@ -25,30 +35,46 @@ class WarehouseBotMain(Node):
         self.machine = Machine(model=self, states=states, initial='idle')
 
         # state transitions
-        self.machine.add_transition(trigger='start_idle', source='putting_down_product', dest='idle')
-        self.machine.add_transition(trigger='start_navigation', source=['idle', 'detecting_product', 'grabbing_product'], dest='navigating')
-        self.machine.add_transition(trigger='start_detecting_product', source=['navigating', 'adjusting_position', 'grabbing_product'], dest='detecting_product')
-        self.machine.add_transition(trigger='start_adjusting_position', source='detecting_product', dest='adjusting_position')
-        self.machine.add_transition(trigger='start_grabbing_product', source='adjusting_position', dest='grabbing_product')
-        self.machine.add_transition(trigger='start_detecting_product', source='navigating', dest='putting_down_product')
-        self.machine.add_transition(trigger='start_idle', source='putting_down_product', dest='idle')
-        self.machine.add_transition(trigger='error', source='*', dest='error')
+        self.machine.add_transition(
+            trigger='start_idle', 
+            source=['putting_down_product'], 
+            dest='idle') 
+        
+        self.machine.add_transition(
+            trigger='start_navigation', 
+            source=['idle', 'detecting_product', 'grabbing_product'], 
+            dest='navigating',
+            after=self.navigate_to_next_pose)
+        
+        self.machine.add_transition(
+            trigger='start_detecting_product', 
+            source=['navigating', 'adjusting_position', 'grabbing_product'], 
+            dest='detecting_product',
+            after=self.wait_for_next_pose)
+        
+        self.machine.add_transition(
+            trigger='start_adjusting_position', 
+            source='detecting_product', 
+            dest='adjusting_position')
+        
+        self.machine.add_transition(
+            trigger='start_grabbing_product', 
+            source='adjusting_position', 
+            dest='grabbing_product')
+        
+        self.machine.add_transition(
+            trigger='start_putting_down_product', 
+            source='navigating', 
+            dest='putting_down_product')
+        
+        self.machine.add_transition(
+            trigger='error', 
+            source='*', 
+            dest='error',
+            after=lambda: print('Error state'))
 
-        # state callbacks
-        self.machine.on_enter_navigating(self.navigate_to_next_pose)
-        self.machine.on_enter_idle(self.wait())
-        self.machine.on_enter_error(lambda: print('Error state'))
 
-        # pose information
-        self.current_goal_pose = 0
-        self.goal_poses = [
-            {'x': 1.614, 'y': 0.464, 'z': 0.0, 'w': 1.0},
-            {'x': 1.4335, 'y': -0.1385, 'z': 0.0, 'w': 0.9939},
-            {'x': 1.7028, 'y': -0.3628, 'z': 0.0, 'w': 0.9931},
-            {'x': 0.0, 'y': 0.0, 'z': 0.0, 'w': 0.0},
-        ]
-
-    def wait(self):
+    def wait_for_next_pose(self):
         print(f'Waiting. Current state: {self.state}')
         time.sleep(3)
 
@@ -57,11 +83,12 @@ class WarehouseBotMain(Node):
             self.start_navigation()
         else:
             self.get_logger().info('No more poses to visit')
-            self.error()
+            self.start_idle()
 
     def navigate_to_next_pose(self):
         self.get_logger().info('Navigating to next pose')
         pose = self.get_next_pose()
+        print(f'Navigating to pose: {pose}')
         self.send_goal(pose)
 
 
@@ -114,7 +141,7 @@ class WarehouseBotMain(Node):
         result = future.result().result
         if result is not None:
             self.get_logger().info('Bot has reached the goal pose!')
-            self.start_idle()
+            self.start_detecting_product()
         else:
             self.get_logger().error('Error while traveling to the goal pose.')
             self.error()
@@ -122,14 +149,14 @@ class WarehouseBotMain(Node):
 
     def feedback_callback(self, feedback_msg):
         # Ausgabe von Feedback während der Navigation
-        self.get_logger().info(f'Current pose feedback: {feedback_msg.feedback.current_pose.pose}')
+        if self.LOG_FEEDBACK:
+            self.get_logger().info(f'Current pose feedback: {feedback_msg.feedback.current_pose.pose}')
 
 
 def main(args=None):
     rclpy.init(args=args)
-    warehouse_bot_main = WarehouseBotMain()
 
-    # switch to navigation state
+    warehouse_bot_main = WarehouseBotMain()
     warehouse_bot_main.start_navigation()
     
     rclpy.spin(warehouse_bot_main)
