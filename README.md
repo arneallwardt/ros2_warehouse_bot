@@ -56,7 +56,7 @@ This file contains information about entry points and launch files. If you want 
 
 ### Mapping
 - *sim_time:=true ONLY FOR GAZEBO*
-- `mode: mapping` and `scan_topic: /scan/filtered` in mapper_params_online_async.yaml
+- `mode: mapping` and `scan_topic: /scan_filtered` in mapper_params_online_async.yaml
 - launch gazebo: `ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py`
     - if it is not working try `source /usr/share/gazebo/setup.sh`
 - start teleoperating node: `ros2 run turtlebot3_teleop teleop_keyboard`

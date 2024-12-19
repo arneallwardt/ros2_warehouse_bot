@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'scan_filter = warehouse_bot_sensors.scan_filter:main',
+            'image_provider = warehouse_bot_sensors.image_provider:main',
         ],
     },
 )
