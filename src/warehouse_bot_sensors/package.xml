@@ -1,26 +1,17 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>warehouse_bot</name>
+  <name>warehouse_bot_sensors</name>
   <version>0.0.0</version>
-  <description>Package for an autonomous warehouse bot based on turtlebot3</description>
+  <description>Package for warehouse_bot sensors</description>
   <maintainer email="arne.allwardt@th-brandenburg.de">Arne Allwardt</maintainer>
   <license>Apache-2.0</license>
-
-  <!--Dependencies which are imported in the node scripts-->
-  <exec_depend>rclpy</exec_depend>
-  <exec_depend>std_msgs</exec_depend> 
-  <exec_depend>sensor_msgs</exec_depend> 
-  <exec_depend>tutorial_interfaces</exec_depend>
-  <exec_depend>more_interfaces</exec_depend>
-  <exec_depend>transitions</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
-  <!--it is recommended to include this when using launch files-->
   <exec_depend>ros2launch</exec_depend> 
 
   <export>
