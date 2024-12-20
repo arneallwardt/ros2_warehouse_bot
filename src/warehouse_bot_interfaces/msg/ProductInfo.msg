@@ -1,0 +1,1 @@
+bool product_in_frame
