@@ -33,15 +33,6 @@ def generate_launch_description():
             parameters=[twist_mux_config],
             remappings=[('cmd_vel_out', 'diff_cont/cmd_vel_unstamped')]
         ),
-        
-        # scan_filter node
-        Node(
-            package='warehouse_bot_sensors',
-            executable='scan_filter',
-            name='scan_filter',
-            output='screen', # ensure that output is printed to the console
-            emulate_tty=True, # ensure that output is printed to the console
-        ),
 
         # slam_toolbox
         IncludeLaunchDescription(
