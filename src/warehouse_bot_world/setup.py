@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'scan_filter = warehouse_bot_world.product_recognizer:main',
+            'product_recognizer = warehouse_bot_world.product_recognizer:main',
         ],
     },
 )

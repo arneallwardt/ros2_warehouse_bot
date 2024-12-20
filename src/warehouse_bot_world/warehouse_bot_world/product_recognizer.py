@@ -17,12 +17,6 @@ class ProductRecognizer(Node):
             callback=self.listener_callback,
             qos_profile=10
         )
-        
-        self.turn_dir_publisher = self.create_publisher(
-            msg_type=Twist,
-            topic='/cmd_vel',
-            qos_profile=10
-        )
 
         self.bridge = CvBridge()
         self.colors = {
@@ -62,14 +56,14 @@ class ProductRecognizer(Node):
                     turn_direction = Twist()
                     turn_direction.angular.z = 0.5 if bbox_center_x < mask_image.width/2 else -0.5
 
-                    self.turn_dir_publisher.publish(turn_direction) 
+                    # self.turn_dir_publisher.publish(turn_direction) 
                     
                     self.get_logger().info(f'Turning with angular velocity: {turn_direction.angular.z}')
 
         if not blue_in_frame:
             turn_direction = Twist()
             turn_direction.angular.z = 0.0
-            self.turn_dir_publisher.publish(turn_direction)
+            # self.turn_dir_publisher.publish(turn_direction)
 
         cv2.imshow('frame', frame)
         cv2.waitKey(1) # wait 1 ms for correct framerate and user inputs

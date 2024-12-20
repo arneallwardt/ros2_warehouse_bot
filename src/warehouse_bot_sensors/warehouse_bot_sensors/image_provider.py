@@ -13,7 +13,7 @@ class ImageProvider(Node):
             topic='camera_image_raw', 
             qos_profile=10) # profile which sets the connection quality
         self.timer = self.create_timer(0.1, self.timer_callback)
-        self.camera_idx = 1
+        self.camera_idx = 0 # 0 = built in camera
         
         # initialize camera and set resolution to 640x480
         self.get_logger().info('Initializing camera...')
