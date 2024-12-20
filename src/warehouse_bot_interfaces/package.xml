@@ -3,8 +3,8 @@
 <package format="3">
   <name>warehouse_bot_interfaces</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="arne.allwardt@th-brandenburg.de">kilab</maintainer>
+  <description>Interfaces for warehouse_bot</description>
+  <maintainer email="arne.allwardt@th-brandenburg.de">Arne Allwardt</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

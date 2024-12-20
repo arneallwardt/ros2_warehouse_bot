@@ -9,6 +9,17 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED) # for interfaces
 
+set(msg_files
+  "msg/ProductInfo.msg"
+)
+
+# msg / srv go here
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -20,11 +31,5 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-
-# msg / srv go here
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/ProductInfo.msg"
-  # DEPENDENCIES geometry_msgs # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
-)
 
 ament_package()

@@ -6,11 +6,13 @@ from geometry_msgs.msg import Twist
 import cv2
 import numpy as np
 from PIL import Image as pImage
+from warehouse_bot_interfaces.msg import ProductInfo # this works but somehow a warning is shown
 
 class ProductInfoProvider(Node):
     def __init__(self):
         super().__init__('product_info_provider')
 
+        # create subscriber
         self.camera_feed_subscription = self.create_subscription(
             msg_type=Image,
             topic='camera_image_raw',
@@ -18,22 +20,36 @@ class ProductInfoProvider(Node):
             qos_profile=10
         )
 
+        # create publisher
+        self.info_publisher = self.create_publisher(ProductInfo, 'product_info', 10)
+        timer_period = 0.5
+        self.timer = self.create_timer(timer_period, self.publish_product_info)
+        self.product_in_frame = False
+        self.center_offset = 0.0
+
+
         self.bridge = CvBridge()
         self.colors = {
-            "green": [170, 193, 73],
             "blue": [173, 83, 0],
-            "yellow": [103, 194, 255]
         }
         self.limits = self.get_limits()
+
+
         self.get_logger().info('product_info_provider initialized.')
+
+
+    def publish_product_info(self):
+        msg = ProductInfo()                                        
+        msg.product_in_frame = self.product_in_frame
+        msg.center_offset = self.center_offset
+        self.info_publisher.publish(msg)
+
 
     def listener_callback(self, msg):
 
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8') # convert received img
         
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-        blue_in_frame = False
 
         for key, value in self.limits.items():
             lower_limit_hsv, upper_limit_hsv = value
@@ -45,25 +61,19 @@ class ProductInfoProvider(Node):
             mask_image = pImage.fromarray(mask)
             mask_bbox = mask_image.getbbox()
 
-            if mask_bbox:
+            if mask_bbox and key == 'blue':
+
+                # get bounding box
                 x1, y1, x2, y2 = mask_bbox
                 frame = cv2.rectangle(frame, pt1=(x1, y1), pt2=(x2, y2), color=self.colors[key], thickness=5)
 
-                if key == 'blue':
-                    bbox_center_x = x1 + (x2-x1)/2
-                    blue_in_frame = True
-
-                    turn_direction = Twist()
-                    turn_direction.angular.z = 0.5 if bbox_center_x < mask_image.width/2 else -0.5
-
-                    # self.turn_dir_publisher.publish(turn_direction) 
-                    
-                    self.get_logger().info(f'Turning with angular velocity: {turn_direction.angular.z}')
-
-        if not blue_in_frame:
-            turn_direction = Twist()
-            turn_direction.angular.z = 0.0
-            # self.turn_dir_publisher.publish(turn_direction)
+                # center of bbox
+                bbox_center = x1+(x2-x1)/2
+                self.center_offset = bbox_center - mask_image.width/2
+                self.product_in_frame = True 
+            else:
+                self.product_in_frame = False
+                self.center_offset = 0.0
 
         cv2.imshow('frame', frame)
         cv2.waitKey(1) # wait 1 ms for correct framerate and user inputs

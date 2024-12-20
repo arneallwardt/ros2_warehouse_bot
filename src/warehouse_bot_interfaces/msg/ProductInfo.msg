@@ -1,1 +1,2 @@
 bool product_in_frame
+float64 center_offset
