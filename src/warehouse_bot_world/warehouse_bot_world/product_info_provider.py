@@ -7,9 +7,9 @@ import cv2
 import numpy as np
 from PIL import Image as pImage
 
-class ProductRecognizer(Node):
+class ProductInfoProvider(Node):
     def __init__(self):
-        super().__init__('product_recognizer')
+        super().__init__('product_info_provider')
 
         self.camera_feed_subscription = self.create_subscription(
             msg_type=Image,
@@ -25,7 +25,7 @@ class ProductRecognizer(Node):
             "yellow": [103, 194, 255]
         }
         self.limits = self.get_limits()
-        self.get_logger().info('Color Recognition Node initialized.')
+        self.get_logger().info('product_info_provider initialized.')
 
     def listener_callback(self, msg):
 
@@ -95,10 +95,10 @@ class ProductRecognizer(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    product_recognizer = ProductRecognizer()
-    rclpy.spin(product_recognizer)
+    product_info_provider = ProductInfoProvider()
+    rclpy.spin(product_info_provider)
 
-    product_recognizer.destroy_node()
+    product_info_provider.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
