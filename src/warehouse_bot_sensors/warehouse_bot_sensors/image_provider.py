@@ -22,9 +22,9 @@ class ImageProvider(Node):
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
         if not self.cap.isOpened():
-            self.get_logger().error('Failed to open camera.')
+            self.get_logger().error('image_provider failed to open camera.')
             return
-        self.get_logger().info('Publisher Node successfully initialized!')
+        self.get_logger().info('image_provider successfully initialized!')
 
         self.bridge = CvBridge()
 
@@ -34,9 +34,8 @@ class ImageProvider(Node):
         if ret:
             ros_img = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
             self.publisher.publish(ros_img)
-            self.get_logger().info(f'Publishing Image at {datetime.now()}')
         else:
-            self.get_logger().warn('Failed to read frame from camera.')
+            self.get_logger().warn('image_provider ailed to read frame from camera.')
 
     def destroy_node(self):
         self.cap.release()
