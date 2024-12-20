@@ -5,6 +5,9 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 import time
 from transitions import Machine
+from geometry_msgs.msg import Twist
+import math
+from warehouse_bot_interfaces.msg import ProductInfo
 
 
 class WarehouseBotMain(Node):
@@ -12,6 +15,17 @@ class WarehouseBotMain(Node):
         super().__init__('nav_to_pose_client')
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self.LOG_FEEDBACK = False
+
+        self.product_info_subscribtion = self.create_subscription(
+            ProductInfo,
+            '/product_info',
+            self.align_with_product,
+            10)
+        
+        self.cmd_vel_publisher = self.create_publisher(
+            msg_type=Twist,
+            topic='cmd_vel',
+            qos_profile=10)
 
         # pose information
         self.current_goal_pose = 0
@@ -30,41 +44,42 @@ class WarehouseBotMain(Node):
             'adjusting_position',
             'grabbing_product',
             'putting_down_product',
-            'error'
+            'error',
+            'universal'
         ]
-        self.machine = Machine(model=self, states=states, initial='idle')
+        self.machine = Machine(model=self, states=states, initial='universal')
 
         # state transitions
         self.machine.add_transition(
             trigger='start_idle', 
-            source=['putting_down_product'], 
+            source=['putting_down_product', 'universal'], 
             dest='idle') 
         
         self.machine.add_transition(
             trigger='start_navigation', 
-            source=['idle', 'detecting_product', 'grabbing_product'], 
+            source=['idle', 'detecting_product', 'grabbing_product', 'universal'], 
             dest='navigating',
             after=self.navigate_to_next_pose)
         
         self.machine.add_transition(
             trigger='start_detecting_product', 
-            source=['navigating', 'adjusting_position', 'grabbing_product'], 
+            source=['navigating', 'adjusting_position', 'grabbing_product', 'universal'], 
             dest='detecting_product',
             after=self.wait_for_next_pose)
         
         self.machine.add_transition(
             trigger='start_adjusting_position', 
-            source='detecting_product', 
+            source=['detecting_product', 'universal'], 
             dest='adjusting_position')
         
         self.machine.add_transition(
             trigger='start_grabbing_product', 
-            source='adjusting_position', 
+            source=['adjusting_position', 'universal'], 
             dest='grabbing_product')
         
         self.machine.add_transition(
             trigger='start_putting_down_product', 
-            source='navigating', 
+            source=['navigating' , 'universal'], 
             dest='putting_down_product')
         
         self.machine.add_transition(
@@ -72,7 +87,36 @@ class WarehouseBotMain(Node):
             source='*', 
             dest='error',
             after=lambda: print('Error state'))
+            
+        self.machine.add_transition(
+            trigger='start_universal', 
+            source='*', 
+            dest='universal') 
+        
+    
+    ### adjusting_position
 
+    def align_with_product(self, msg):
+        if self.state != 'adjusting_position':
+            return 
+        print('Aligning with product')
+        print(msg)
+
+        direction = 1 if msg.center_offset < 0 else -1
+        scaling_factor = 1
+
+        offset_normalized = abs(msg.center_offset) / 160 # normalize offset between [0, 1]
+
+        turn_direction = Twist()
+        turn_direction.angular.z = scaling_factor * (offset_normalized ** 2) * direction
+        print(turn_direction.angular.z)
+        self.cmd_vel_publisher.publish(turn_direction)
+
+        # use this to stop the bot:
+        # ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
+
+
+    ### navigating
 
     def wait_for_next_pose(self):
         print(f'Waiting. Current state: {self.state}')
@@ -107,8 +151,8 @@ class WarehouseBotMain(Node):
 
         return pose
 
-    def log_error(self):
-        self.get_logger().error('Error state')
+
+    ### navigate_to_pose action
 
     def send_goal(self, pose):
     
@@ -153,11 +197,17 @@ class WarehouseBotMain(Node):
             self.get_logger().info(f'Current pose feedback: {feedback_msg.feedback.current_pose.pose}')
 
 
+    ### Error
+
+    def log_error(self):
+        self.get_logger().error('Error state')
+
 def main(args=None):
     rclpy.init(args=args)
 
     warehouse_bot_main = WarehouseBotMain()
-    warehouse_bot_main.start_navigation()
+    # warehouse_bot_main.start_navigation() TODO: uncomment when starting state is navigating
+    warehouse_bot_main.start_adjusting_position()
     
     rclpy.spin(warehouse_bot_main)
 
