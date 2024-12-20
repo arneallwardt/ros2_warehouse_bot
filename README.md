@@ -76,3 +76,7 @@ This file contains information about entry points and launch files. If you want 
 - start the bot itself (in bots shell): `ros2 launch turtlebot3_bringup robot.launch.py`
 - start localisation (including twist_mux, scan_filter, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_localization_launch.py`
 - start navigation: `ros2 launch warehouse_bot warehouse_bot_navigation_launch.py`
+
+## Misc
+
+- use this to reset turtlebot movement: `ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'`

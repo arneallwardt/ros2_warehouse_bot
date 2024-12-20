@@ -2,7 +2,6 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from geometry_msgs.msg import Twist
 import cv2
 import numpy as np
 from PIL import Image as pImage
@@ -22,7 +21,7 @@ class ProductInfoProvider(Node):
 
         # create publisher
         self.info_publisher = self.create_publisher(ProductInfo, 'product_info', 10)
-        timer_period = 0.5
+        timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.publish_product_info)
         self.product_in_frame = False
         self.center_offset = 0.0
