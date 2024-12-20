@@ -28,7 +28,7 @@ class ScanFilter(Node):
         )
         
         # Publisher für das gefilterte /scan Topic
-        self.publisher = self.create_publisher(LaserScan, '/scan/filtered', qos_profile_pub)
+        self.publisher = self.create_publisher(LaserScan, '/scan_filtered', qos_profile_pub)
 
     def scan_callback(self, msg):
         filtered_ranges = list(msg.ranges)
