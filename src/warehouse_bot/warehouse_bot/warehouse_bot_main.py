@@ -5,9 +5,6 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 import time
 from transitions import Machine
-from geometry_msgs.msg import Twist
-import math
-from warehouse_bot_interfaces.msg import ProductInfo
 
 
 class WarehouseBotMain(Node):
@@ -15,17 +12,6 @@ class WarehouseBotMain(Node):
         super().__init__('nav_to_pose_client')
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self.LOG_FEEDBACK = False
-
-        self.product_info_subscribtion = self.create_subscription(
-            ProductInfo,
-            '/product_info',
-            self.align_with_product,
-            10)
-        
-        self.cmd_vel_publisher = self.create_publisher(
-            msg_type=Twist,
-            topic='cmd_vel',
-            qos_profile=10)
 
         # pose information
         self.current_goal_pose = 0
@@ -70,7 +56,8 @@ class WarehouseBotMain(Node):
         self.machine.add_transition(
             trigger='start_adjusting_position', 
             source=['detecting_product', 'universal'], 
-            dest='adjusting_position')
+            dest='adjusting_position',
+            after=self.call_product_aligner)
         
         self.machine.add_transition(
             trigger='start_grabbing_product', 
@@ -93,28 +80,16 @@ class WarehouseBotMain(Node):
             source='*', 
             dest='universal') 
         
-    
-    ### adjusting_position
 
-    def align_with_product(self, msg):
+    ### adjusting position
+    def call_product_aligner(self):
         if self.state != 'adjusting_position':
+            print(f"warehouse_bot_main: wrong state for call_product_aligner(). Current state: {self.state}")
             return 
-        print('Aligning with product')
-        print(msg)
-
-        direction = 1 if msg.center_offset < 0 else -1
-        scaling_factor = 1
-
-        offset_normalized = abs(msg.center_offset) / 160 # normalize offset between [0, 1]
-
-        turn_direction = Twist()
-        turn_direction.angular.z = scaling_factor * (offset_normalized ** 2) * direction
-        print(turn_direction.angular.z)
-        self.cmd_vel_publisher.publish(turn_direction)
-
-        # use this to stop the bot:
-        # ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
-
+        
+        print(self.state)
+        # TODO: call action here
+        pass
 
     ### navigating
 
@@ -201,6 +176,7 @@ class WarehouseBotMain(Node):
 
     def log_error(self):
         self.get_logger().error('Error state')
+
 
 def main(args=None):
     rclpy.init(args=args)

@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'product_aligner = warehouse_bot_world.product_aligner:main',
+            'product_aligner = warehouse_bot_pilots.product_aligner:main',
         ],
     },
 )
