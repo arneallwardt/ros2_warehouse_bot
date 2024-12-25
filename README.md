@@ -10,6 +10,7 @@
 - Install nav2: `sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup`
 - Install colcon `sudo apt install python3-colcon-common-extensions`
 - Install twist_mux: `sudo apt install ros-humble-twist-mux`
+- Install slam_toolbox: `sudo apt install ros-humble-slam-toolbox`
 - Add xacro support: `sudo apt install ros-humble-xacro`
 - Install GUI for joint-state-publisher: `sudo apt install ros-humble-joint-state-publisher-gui`
 
@@ -53,17 +54,13 @@ This file contains information about entry points and launch files. If you want 
   - launch file: `ros2 run <package_name> <launch_file>`
 
 ## Using slam_toolbox and nav2
+- *sim_time:=true ONLY FOR GAZEBO*
+- you might want to build the `warehouse_bot` package first by executing `colcon build` in the packages root directory 
+- remember to execute `source /home/kilab/ros2_warehouse_bot/install/setup.bash` in every shell you open
+- set `map_file_name` in [mapper_params_localization.yaml](./src/warehouse_bot/config/mapper_params_localization.yaml) and to the path where your map files are. You can find them in `/maps/new` but you have to provide the rest of the absolute path starting with `/home`...
 
 ### Mapping
-- *sim_time:=true ONLY FOR GAZEBO*
-- `mode: mapping` and `scan_topic: /scan_filtered` in mapper_params_online_async.yaml
-- launch gazebo: `ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py`
-    - if it is not working try `source /usr/share/gazebo/setup.sh`
-- start teleoperating node: `ros2 run turtlebot3_teleop teleop_keyboard`
-- launch scan filtering node (only when arm is mounted on robot): `python3 ros2_warehouse_bot/misc/scan_filter.py`
-- start mapping with slam toolbox: `ros2 launch slam_toolbox online_async_launch.py slam_params_file:=<path_to_ws>/src/warehouse_bot/config/mapper_params_online_async.yaml use_sim_time:=true`
-- run rviz: `rviz2`
-    - set *Fixed Frame = map* in rviz
+- start mapping (including twist_mux, scan_filter, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_mapping_launch.py`
 
 - **Saving Map**
     - add slam_toolbox panel to rviz
@@ -71,10 +68,8 @@ This file contains information about entry points and launch files. If you want 
     - serialize → new format to use with slam_toolbox
 
 ### Navigation (slam_toolbox and nav2)
-- you might want to build the `warehouse_bot` package first by executing `colcon build` in the packages root directory 
-- remember to execute `source /home/kilab/ros2_warehouse_bot/install/setup.bash` in every shell you open
 - start the bot itself (in bots shell): `ros2 launch turtlebot3_bringup robot.launch.py`
-- start localisation (including twist_mux, scan_filter, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_localization_launch.py`
+- start localization (including twist_mux, scan_filter, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_localization_launch.py`
 - start navigation: `ros2 launch warehouse_bot warehouse_bot_navigation_launch.py`
 
 ## Misc

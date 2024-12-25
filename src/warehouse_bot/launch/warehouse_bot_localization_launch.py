@@ -7,11 +7,20 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
+    workspace_root = os.path.join(os.path.dirname(__file__), '../../../../..')
+    config_dir = os.path.join(workspace_root, 'src', 'warehouse_bot', 'config')
+
     # twist_mux
-    twist_mux_config = '/home/kilab/ros2_warehouse_bot/src/warehouse_bot/config/twist_mux.yaml'
-    
+    twist_mux_config = os.path.join(
+        config_dir,
+        'twist_mux.yaml'
+    )
+
     # slam_toolbox
-    slam_params_file = '/home/kilab/ros2_warehouse_bot/src/warehouse_bot/config/mapper_params_localization.yaml'
+    slam_params_file = os.path.join(
+        config_dir,
+        'mapper_params_localization.yaml'
+    )
     slam_toolbox_launch_file = os.path.join(
         get_package_share_directory('slam_toolbox'),
         'launch',
@@ -19,8 +28,10 @@ def generate_launch_description():
     )
 
     # rviz2 
-    rviz2_config_file = '/home/kilab/ros2_warehouse_bot/src/warehouse_bot/config/warehouse_bot_default_view.rviz'
-
+    rviz2_config_file = os.path.join(
+        config_dir,
+        'warehouse_bot_default_view.rviz'
+    )
 
     return LaunchDescription([ 
 
