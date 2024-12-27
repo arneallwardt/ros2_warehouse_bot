@@ -9,4 +9,6 @@ float64 product_diameter
 float64 product_distance
 float64 product_center_offset
 ---
-bool success
+float64 product_diameter
+float64 product_distance
+float64 product_center_offset

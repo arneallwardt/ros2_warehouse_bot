@@ -4,6 +4,8 @@ from geometry_msgs.msg import Twist
 from warehouse_bot_interfaces.msg import ProductInfo
 from rclpy.action import ActionServer
 from warehouse_bot_interfaces.action import AlignProduct
+import random
+import time
 
 
 class ProductAligner(Node):
@@ -13,9 +15,9 @@ class ProductAligner(Node):
         self.get_logger().info('product_info_provider initialized.')
 
         # keep track of theese using the subscription on /product_info
-        self.current_product_distance = None
-        self.current_product_diameter = None
-        self.current_product_center_offset = None
+        self.current_product_distance = 0 # TODO: should be None instead
+        self.current_product_diameter = 0
+        self.current_product_center_offset = 0
 
         self.product_info_subscribtion = self.create_subscription(
             ProductInfo,
@@ -43,6 +45,22 @@ class ProductAligner(Node):
         goal_handle.succeed()
         
         result = AlignProduct.Result()
+        feedback = AlignProduct.Feedback()
+
+        for i in range(5):
+            self.current_product_center_offset += random.random()
+            self.current_product_diameter += random.random()
+            self.current_product_distance += random.random()
+
+            feedback.product_center_offset = self.current_product_center_offset
+            feedback.product_diameter = self.current_product_diameter
+            feedback.product_distance = self.current_product_distance
+
+            goal_handle.publish_feedback(feedback)
+
+            time.sleep(1)
+            
+
         result.product_diameter = self.current_product_diameter
         result.product_distance = self.current_product_distance
         result.product_center_offset = self.current_product_center_offset
