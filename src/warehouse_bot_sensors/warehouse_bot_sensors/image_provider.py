@@ -3,7 +3,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge
-from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 class ImageProvider(Node):
     def __init__(self):
@@ -15,11 +16,11 @@ class ImageProvider(Node):
         self.timer = self.create_timer(0.1, self.timer_callback)
         self.camera_idx = 0 # 0 = built in camera
         
-        # initialize camera and set resolution to 640x480
+        # initialize camera and set resolution
         self.get_logger().info('Initializing camera...')
         self.cap = cv2.VideoCapture(self.camera_idx)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(os.getenv('CAP_WIDTH')))
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(os.getenv('CAP_HEIGHT')))
 
         if not self.cap.isOpened():
             self.get_logger().error('image_provider failed to open camera.')
@@ -43,6 +44,7 @@ class ImageProvider(Node):
 
 def main(args=None):
     rclpy.init(args=args)
+    load_dotenv()
     camera_feed_publisher = ImageProvider()
 
     if camera_feed_publisher.cap.isOpened():  # Proceed only if camera opened successfully

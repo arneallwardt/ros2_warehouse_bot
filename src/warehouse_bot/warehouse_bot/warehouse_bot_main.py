@@ -6,7 +6,8 @@ from nav2_msgs.action import NavigateToPose
 import time
 from transitions import Machine
 from warehouse_bot_interfaces.action import AlignProduct
-
+import os
+from dotenv import load_dotenv
 
 class WarehouseBotMain(Node):
     def __init__(self):
@@ -171,7 +172,7 @@ class WarehouseBotMain(Node):
 
     def navigate_to_pose_feedback_callback(self, feedback_msg):
         # Ausgabe von Feedback während der Navigation
-        if self.LOG_FEEDBACK:
+        if os.getenv('LOG_ACTION_FEEDBACK') == "True":
             self.get_logger().info(f'Current pose feedback: {feedback_msg.feedback.current_pose.pose}')
 
 
@@ -180,12 +181,12 @@ class WarehouseBotMain(Node):
     def send_align_product_goal(self):
         goal_msg = AlignProduct.Goal()
         
-        goal_msg.product_diameter = 40.0
-        goal_msg.product_diameter_tolerance = 2.0
-        goal_msg.product_distance = 20.0
-        goal_msg.product_distance_tolerance = 2.0
-        goal_msg.product_center_offset = 10.0
-        goal_msg.product_center_offset_tolerance = 1.0
+        goal_msg.product_diameter = float(os.getenv('PRODUCT_DIAMETER'))
+        goal_msg.product_diameter_tolerance = float(os.getenv('PRODUCT_DIAMETER_TOLERANCE'))
+        goal_msg.product_distance = float(os.getenv('PRODUCT_DISTANCE'))
+        goal_msg.product_distance_tolerance = float(os.getenv('PRODUCT_DISTANCE_TOLERANCE'))
+        goal_msg.product_center_offset = float(os.getenv('PRODUCT_CENTER_OFFSET'))
+        goal_msg.product_center_offset_tolerance = float(os.getenv('PRODUCT_CENTER_OFFSET_TOLERANCE'))
 
         self._align_product_action_client.wait_for_server()
 
@@ -223,7 +224,7 @@ class WarehouseBotMain(Node):
     def align_product_feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
 
-        if self.LOG_FEEDBACK:
+        if os.getenv('LOG_ACTION_FEEDBACK') == "True":
             print('####### ALIGN PRODUCT FEEDBACK #########')
             print(f'diameter: {feedback.product_diameter}')
             print(f'distance: {feedback.product_distance}')
@@ -238,6 +239,7 @@ class WarehouseBotMain(Node):
 
 def main(args=None):
     rclpy.init(args=args)
+    load_dotenv()
 
     warehouse_bot_main = WarehouseBotMain()
     # warehouse_bot_main.start_navigation() TODO: uncomment when starting state is navigating
