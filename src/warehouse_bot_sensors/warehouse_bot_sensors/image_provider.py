@@ -19,8 +19,8 @@ class ImageProvider(Node):
         # initialize camera and set resolution
         self.get_logger().info('Initializing camera...')
         self.cap = cv2.VideoCapture(self.camera_idx)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(os.getenv('CAP_WIDTH')))
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(os.getenv('CAP_HEIGHT')))
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(os.getenv('CAP_WIDTH', 320)))
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(os.getenv('CAP_HEIGHT', 320)))
 
         if not self.cap.isOpened():
             self.get_logger().error('image_provider failed to open camera.')

@@ -172,7 +172,7 @@ class WarehouseBotMain(Node):
 
     def navigate_to_pose_feedback_callback(self, feedback_msg):
         # Ausgabe von Feedback während der Navigation
-        if os.getenv('LOG_ACTION_FEEDBACK') == "True":
+        if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
             self.get_logger().info(f'Current pose feedback: {feedback_msg.feedback.current_pose.pose}')
 
 
@@ -181,12 +181,12 @@ class WarehouseBotMain(Node):
     def send_align_product_goal(self):
         goal_msg = AlignProduct.Goal()
         
-        goal_msg.product_diameter = float(os.getenv('PRODUCT_DIAMETER'))
-        goal_msg.product_diameter_tolerance = float(os.getenv('PRODUCT_DIAMETER_TOLERANCE'))
-        goal_msg.product_distance = float(os.getenv('PRODUCT_DISTANCE'))
-        goal_msg.product_distance_tolerance = float(os.getenv('PRODUCT_DISTANCE_TOLERANCE'))
-        goal_msg.product_center_offset = float(os.getenv('PRODUCT_CENTER_OFFSET'))
-        goal_msg.product_center_offset_tolerance = float(os.getenv('PRODUCT_CENTER_OFFSET_TOLERANCE'))
+        goal_msg.product_diameter = float(os.getenv('PRODUCT_DIAMETER', 40.0))
+        goal_msg.product_diameter_tolerance = float(os.getenv('PRODUCT_DIAMETER_TOLERANCE', 2.0))
+        goal_msg.product_distance = float(os.getenv('PRODUCT_DISTANCE', 20.0))
+        goal_msg.product_distance_tolerance = float(os.getenv('PRODUCT_DISTANCE_TOLERANCE', 2.0))
+        goal_msg.product_center_offset = float(os.getenv('PRODUCT_CENTER_OFFSET', 10.0))
+        goal_msg.product_center_offset_tolerance = float(os.getenv('PRODUCT_CENTER_OFFSET_TOLERANCE', 1.0))
 
         self._align_product_action_client.wait_for_server()
 
@@ -224,7 +224,7 @@ class WarehouseBotMain(Node):
     def align_product_feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
 
-        if os.getenv('LOG_ACTION_FEEDBACK') == "True":
+        if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
             print('####### ALIGN PRODUCT FEEDBACK #########')
             print(f'diameter: {feedback.product_diameter}')
             print(f'distance: {feedback.product_distance}')
