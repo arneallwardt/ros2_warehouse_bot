@@ -40,25 +40,11 @@ class ProductAligner(Node):
     def align_product_callback(self, goal_handle):
         self.get_logger().info('Aligning with product...')
 
-        success = self.align_with_product(goal_handle.request)
+        success = self.align_with_product(goal_handle)
 
-        goal_handle.succeed()
-        
-        result = AlignProduct.Result()
-        feedback = AlignProduct.Feedback()
-
-        for i in range(5):
-            self.current_product_center_offset += random.random()
-            self.current_product_diameter += random.random()
-            self.current_product_distance += random.random()
-
-            feedback.product_center_offset = self.current_product_center_offset
-            feedback.product_diameter = self.current_product_diameter
-            feedback.product_distance = self.current_product_distance
-
-            goal_handle.publish_feedback(feedback)
-
-            time.sleep(1)
+        if success:
+            result = AlignProduct.Result()
+            goal_handle.succeed()
             
 
         result.product_diameter = self.current_product_diameter
@@ -68,9 +54,87 @@ class ProductAligner(Node):
         return result
 
 
-    def align_with_product(self, request):
-        print(request)
+    def align_with_product(self, goal_handle):
+
+        is_product_diameter_optimized = False
+        is_product_center_offset_optimized = False
+        is_product_distance_optimized = False
+
+        while (not (is_product_diameter_optimized and is_product_center_offset_optimized and is_product_distance_optimized)):
+            self.optimize_product_diameter(goal_handle.request)
+            self.optimize_product_distance(goal_handle.request)
+            self.optimize_product_center_offset(goal_handle.request)
+
+            is_product_diameter_optimized = self.is_parameter_optimized(
+                goal=goal_handle.request.product_diameter, 
+                tolerance=goal_handle.request.product_diameter_tolerance, 
+                actual=self.current_product_diameter)
+            
+            is_product_center_offset_optimized = self.is_parameter_optimized(
+                goal=goal_handle.request.product_distance, 
+                tolerance=goal_handle.request.product_distance_tolerance, 
+                actual=self.current_product_center_offset)
+            
+            is_product_distance_optimized = self.is_parameter_optimized(
+                goal=goal_handle.request.product_distance, 
+                tolerance=goal_handle.request.product_distance_tolerance, 
+                actual=self.current_product_distance)
+
+            self.provide_feedback(goal_handle)
+
         return True
+    
+
+    def optimize_product_diameter(self, request):
+        goal = request.product_diameter
+        tolerance = request.product_diameter_tolerance
+        pass
+
+
+    def optimize_product_center_offset(self, request):
+
+        goal = request.product_center_offset
+        tolerance = request.product_center_offset_tolerance
+        
+        while not self.is_parameter_optimized(goal, tolerance, self.current_product_center_offset):
+
+            center_offset = self.current_product_center_offset # to prevent to get updated center_offset mid function
+
+            direction = 1 if center_offset < 0 else -1
+            scaling_factor = 1
+
+            offset_normalized = abs(center_offset) / 160 # normalize offset between [0, 1]
+
+            turn_direction = Twist()
+            turn_direction.angular.z = scaling_factor * (offset_normalized ** 2) * direction
+            self.cmd_vel_publisher.publish(turn_direction)
+
+        stop_msg = Twist()
+        stop_msg.angular.z = 0
+        self.cmd_vel_publisher.publish(stop_msg)
+
+        # use this to stop the rotation of the bot bot:
+        # ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
+
+
+    def optimize_product_distance(self, request):
+        goal = request.product_distance
+        tolerance = request.product_distance_tolerance
+        pass
+
+
+    def is_parameter_optimized(self, goal, tolerance, actual):
+        return abs(goal-actual) < tolerance
+
+
+    def provide_feedback(self, goal_handle):
+        feedback = AlignProduct.Feedback()
+
+        feedback.product_diameter = self.current_product_diameter
+        feedback.product_center_offset = self.current_product_center_offset
+        feedback.product_distance = self.current_product_distance
+
+        goal_handle.publish_feedback(feedback)
 
 
     def product_info_callback(self, msg):
@@ -81,22 +145,10 @@ class ProductAligner(Node):
 
     # def align_with_product(self, msg):
         
-    #     print('Aligning with product')
-    #     print(msg)
-
-    #     direction = 1 if msg.center_offset < 0 else -1
-    #     scaling_factor = 1
-
-    #     offset_normalized = abs(msg.center_offset) / 160 # normalize offset between [0, 1]
-
-    #     turn_direction = Twist()
-    #     turn_direction.angular.z = scaling_factor * (offset_normalized ** 2) * direction
-    #     print(turn_direction.angular.z)
-    #     self.cmd_vel_publisher.publish(turn_direction)
-
-        # use this to stop the bot:
-        # ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
-
+    
+    def clamp(self, value, min_value, max_value):
+        # make sure that parameters are in a sensible range
+        return max(min(value, max_value), min_value)
 
 
 def main(args=None):
