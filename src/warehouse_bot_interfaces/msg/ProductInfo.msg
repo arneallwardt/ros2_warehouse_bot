@@ -1,2 +1,3 @@
 bool product_in_frame
-float64 center_offset
+float64 product_center_offset
+float64 product_diameter
