@@ -15,13 +15,13 @@ class ProductAligner(Node):
         self.get_logger().info('product_info_provider initialized.')
 
         # keep track of theese using the subscription on /product_info
-        self.current_product_distance = 0 # TODO: should be None instead
-        self.current_product_diameter = 0
-        self.current_product_center_offset = 0
+        self.current_product_distance = 0.0 # TODO: should be None instead
+        self.current_product_diameter = 0.0
+        self.current_product_center_offset = 0.0
 
         self.product_info_subscribtion = self.create_subscription(
             ProductInfo,
-            '/product_info',
+            'product_info',
             self.product_info_callback,
             10)
         
@@ -56,6 +56,8 @@ class ProductAligner(Node):
 
     def align_with_product(self, goal_handle):
 
+        print('def align_with_product...')
+
         is_product_diameter_optimized = False
         is_product_center_offset_optimized = False
         is_product_distance_optimized = False
@@ -86,12 +88,30 @@ class ProductAligner(Node):
     
 
     def optimize_product_diameter(self, request):
+        #print('optimzing diameter...')
         goal = request.product_diameter
         tolerance = request.product_diameter_tolerance
-        pass
+
+        while not self.is_parameter_optimized(goal, tolerance, self.current_product_distance):
+
+            distance = self.current_product_distance # to prevent to get updated center_offset mid function
+
+            scaling_factor = 1
+
+            distance_capped = distance if distance < 0.5 else 0.5 # set max distance to 0.5 (to prevent adjusting too fast)
+
+            movement_msg = Twist()
+            movement_msg.linear.x = float(scaling_factor * (distance_capped ** 2)) # exponential decrease in speed
+            self.cmd_vel_publisher.publish(movement_msg)
+
+        stop_msg = Twist()
+        stop_msg.linear.x = 0.0
+        self.cmd_vel_publisher.publish(stop_msg)
 
 
     def optimize_product_center_offset(self, request):
+
+        #print('optimzing center offset...')
 
         goal = request.product_center_offset
         tolerance = request.product_center_offset_tolerance
@@ -105,12 +125,14 @@ class ProductAligner(Node):
 
             offset_normalized = abs(center_offset) / 160 # normalize offset between [0, 1]
 
-            turn_direction = Twist()
-            turn_direction.angular.z = scaling_factor * (offset_normalized ** 2) * direction
-            self.cmd_vel_publisher.publish(turn_direction)
+            turn_direction_msg = Twist()
+            turn_direction_msg.angular.z = float(scaling_factor * (offset_normalized ** 2) * direction)
+            self.cmd_vel_publisher.publish(turn_direction_msg)
+            # print(offset_normalized)
+            # print(float(scaling_factor * (offset_normalized ** 2) * direction))
 
         stop_msg = Twist()
-        stop_msg.angular.z = 0
+        stop_msg.angular.z = 0.0
         self.cmd_vel_publisher.publish(stop_msg)
 
         # use this to stop the rotation of the bot bot:
@@ -118,6 +140,9 @@ class ProductAligner(Node):
 
 
     def optimize_product_distance(self, request):
+
+        #print('optimzing distance...')
+
         goal = request.product_distance
         tolerance = request.product_distance_tolerance
         pass
@@ -138,9 +163,10 @@ class ProductAligner(Node):
 
 
     def product_info_callback(self, msg):
+        print(f'product_info_callback: {msg.product_center_offset}')
         # update product info
         self.current_product_distance = msg.product_distance
-        self.current_product_diameter = msg.product_diameter
+        # self.current_product_diameter = msg.product_diameter
         self.current_product_center_offset = msg.product_center_offset
 
     # def align_with_product(self, msg):

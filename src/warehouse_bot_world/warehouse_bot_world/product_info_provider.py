@@ -56,7 +56,7 @@ class ProductInfoProvider(Node):
     def publish_product_info(self):
         msg = ProductInfo()                                        
         msg.product_in_frame = self.product_in_frame
-        msg.center_offset = self.center_offset
+        msg.product_center_offset = self.center_offset
         msg.product_distance = self.product_distance
         # TODO: publish product distance and diameter
         self.info_publisher.publish(msg)

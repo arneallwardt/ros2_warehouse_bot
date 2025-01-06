@@ -90,8 +90,9 @@ class WarehouseBotMain(Node):
             print(f"warehouse_bot_main: wrong state for call_product_aligner(). Current state: {self.state}")
             return 
         
-        print(self.state)
+        print(f'calling product_aligner in current state: {self.state}')
         self.send_align_product_goal()
+
 
 
     ### navigating
@@ -181,12 +182,12 @@ class WarehouseBotMain(Node):
     def send_align_product_goal(self):
         goal_msg = AlignProduct.Goal()
         
-        goal_msg.product_diameter = float(os.getenv('PRODUCT_DIAMETER', 40.0))
-        goal_msg.product_diameter_tolerance = float(os.getenv('PRODUCT_DIAMETER_TOLERANCE', 2.0))
-        goal_msg.product_distance = float(os.getenv('PRODUCT_DISTANCE', 20.0))
-        goal_msg.product_distance_tolerance = float(os.getenv('PRODUCT_DISTANCE_TOLERANCE', 2.0))
-        goal_msg.product_center_offset = float(os.getenv('PRODUCT_CENTER_OFFSET', 10.0))
-        goal_msg.product_center_offset_tolerance = float(os.getenv('PRODUCT_CENTER_OFFSET_TOLERANCE', 1.0))
+        goal_msg.product_diameter = float(os.getenv('PRODUCT_DIAMETER', 0.0))
+        goal_msg.product_diameter_tolerance = float(os.getenv('PRODUCT_DIAMETER_TOLERANCE', 200.0))
+        goal_msg.product_distance = float(os.getenv('PRODUCT_DISTANCE', 0.15))
+        goal_msg.product_distance_tolerance = float(os.getenv('PRODUCT_DISTANCE_TOLERANCE', 0.01))
+        goal_msg.product_center_offset = float(os.getenv('PRODUCT_CENTER_OFFSET', 0.0))
+        goal_msg.product_center_offset_tolerance = float(os.getenv('PRODUCT_CENTER_OFFSET_TOLERANCE', 10.0))
 
         self._align_product_action_client.wait_for_server()
 
@@ -215,6 +216,7 @@ class WarehouseBotMain(Node):
             print(f'diameter: {result.product_diameter}')
             print(f'distance: {result.product_distance}')
             print(f'center offset: {result.product_center_offset}')
+            self.start_idle()
 
         else:
             self.get_logger().error('Empty align_product action result')
