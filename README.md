@@ -68,8 +68,8 @@ This file contains information about entry points and launch files. If you want 
     - serialize → new format to use with slam_toolbox
 
 ### Navigation (slam_toolbox and nav2)
-- start the bot itself (in bots shell): `ros2 launch turtlebot3_bringup robot.launch.py`
-- start localization (including twist_mux, scan_filter, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_localization_launch.py`
+- start the bot itself (in bots shell; includes turtlebot3_bringup, scan_filter, image_provider): `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
+- start localization (includes twist_mux, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_localization_launch.py`
 - start navigation: `ros2 launch warehouse_bot warehouse_bot_navigation_launch.py`
 
 ## Misc

@@ -6,6 +6,8 @@ import cv2
 import numpy as np
 from PIL import Image as pImage
 from warehouse_bot_interfaces.msg import ProductInfo # this works but somehow a warning is shown
+from sensor_msgs.msg import LaserScan
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 class ProductInfoProvider(Node):
     def __init__(self):
@@ -15,8 +17,21 @@ class ProductInfoProvider(Node):
         self.camera_feed_subscription = self.create_subscription(
             msg_type=Image,
             topic='camera_image_raw',
-            callback=self.listener_callback,
+            callback=self.camera_image_raw_callback,
             qos_profile=10
+        )
+
+        lidar_qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        self.lidar_subscription = self.create_subscription(
+            msg_type=LaserScan,
+            topic='scan_filtered',
+            callback=self.scan_filtered_callback,
+            qos_profile=lidar_qos_profile
         )
 
         # create publisher
@@ -24,7 +39,8 @@ class ProductInfoProvider(Node):
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.publish_product_info)
         self.product_in_frame = False
-        self.center_offset = 0.0
+        self.center_offset = float('inf')
+        self.product_distance = float('inf')
 
 
         self.bridge = CvBridge()
@@ -41,11 +57,12 @@ class ProductInfoProvider(Node):
         msg = ProductInfo()                                        
         msg.product_in_frame = self.product_in_frame
         msg.center_offset = self.center_offset
+        msg.product_distance = self.product_distance
         # TODO: publish product distance and diameter
         self.info_publisher.publish(msg)
 
 
-    def listener_callback(self, msg):
+    def camera_image_raw_callback(self, msg):
 
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8') # convert received img
         
@@ -101,6 +118,12 @@ class ProductInfoProvider(Node):
             limits[key] = [lower_limit, upper_limit]
 
         return limits
+    
+
+    def scan_filtered_callback(self, msg):
+        distance = msg.ranges[0]
+        if distance > 0.0: # sometimes msg.ranges[0] is 0.0, ignore that
+            self.product_distance = distance # 1st laser is the one which goes straight forwards
 
 
 def main(args=None):
