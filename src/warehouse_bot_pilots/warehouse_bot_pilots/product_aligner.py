@@ -18,7 +18,6 @@ class ProductAligner(Node):
         self.get_logger().info('product_info_provider initialized.')
 
         # keep track of theese using the subscription on /product_info
-        self.current_product_distance = 0.0 # TODO: should be None instead
         self.current_product_diameter = 0.0
         self.current_product_center_offset = 0.0
 
@@ -53,9 +52,7 @@ class ProductAligner(Node):
             result = AlignProduct.Result()
             goal_handle.succeed()
             
-
         result.product_diameter = self.current_product_diameter
-        result.product_distance = self.current_product_distance
         result.product_center_offset = self.current_product_center_offset
 
         return result
@@ -63,17 +60,13 @@ class ProductAligner(Node):
 
     def align_with_product(self, goal_handle):
 
-        print('def align_with_product...')
-
         is_product_diameter_optimized = False
         is_product_center_offset_optimized = False
-        is_product_distance_optimized = True
 
 
-        while (not (is_product_diameter_optimized and is_product_center_offset_optimized and is_product_distance_optimized)):
+        while (not (is_product_diameter_optimized and is_product_center_offset_optimized)):
             self.optimize_product_center_offset(goal_handle.request)
             self.optimize_product_diameter(goal_handle.request)
-            #self.optimize_product_distance(goal_handle.request)
 
             is_product_center_offset_optimized = self.is_parameter_optimized(
                 goal=goal_handle.request.product_center_offset, 
@@ -84,14 +77,8 @@ class ProductAligner(Node):
                 goal=goal_handle.request.product_diameter, 
                 tolerance=goal_handle.request.product_diameter_tolerance, 
                 actual=self.current_product_diameter)
-            
-            # is_product_distance_optimized = self.is_parameter_optimized(
-            #     goal=goal_handle.request.product_distance, 
-            #     tolerance=goal_handle.request.product_distance_tolerance, 
-            #     actual=self.current_product_distance)
 
             self.provide_feedback(goal_handle)
-            print(is_product_center_offset_optimized, is_product_diameter_optimized, is_product_distance_optimized)
 
         return True
     
@@ -142,30 +129,6 @@ class ProductAligner(Node):
         stop_msg.angular.z = 0.0
         self.cmd_vel_publisher.publish(stop_msg)
 
-        # use this to stop the rotation of the bot bot:
-        # ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
-
-
-    def optimize_product_distance(self, request):
-
-        goal = request.product_distance
-        tolerance = request.product_distance_tolerance
-        
-        while not self.is_parameter_optimized(goal, tolerance, self.current_product_distance):
-            distance = self.current_product_distance # to prevent to get updated center_offset mid function
-
-            scaling_factor = 0.15
-            movement_speed = float(scaling_factor * (distance ** 2))
-
-            movement_msg = Twist()
-            movement_msg.linear.x = self.clamp(value=movement_speed, min_value=0.01, max_value=0.05) # exponential decrease in speed
-            print(f'movement speed: {movement_msg.linear.x}')
-            self.cmd_vel_publisher.publish(movement_msg)
-
-        stop_msg = Twist()
-        stop_msg.linear.x = 0.0
-        self.cmd_vel_publisher.publish(stop_msg)
-
 
     def is_parameter_optimized(self, goal, tolerance, actual):
         print(f'goal: {goal}')
@@ -181,14 +144,12 @@ class ProductAligner(Node):
 
         feedback.product_diameter = self.current_product_diameter
         feedback.product_center_offset = self.current_product_center_offset
-        feedback.product_distance = self.current_product_distance
 
         goal_handle.publish_feedback(feedback)
 
 
     def product_info_callback(self, msg):
         # update product info
-        self.current_product_distance = msg.product_distance
         self.current_product_diameter = msg.product_diameter
         self.current_product_center_offset = msg.product_center_offset
         

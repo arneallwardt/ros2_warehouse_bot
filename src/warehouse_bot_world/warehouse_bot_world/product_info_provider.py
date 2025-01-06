@@ -4,10 +4,9 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
-from PIL import Image as pImage
-from warehouse_bot_interfaces.msg import ProductInfo # this works but somehow a warning is shown
-from sensor_msgs.msg import LaserScan
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from warehouse_bot_interfaces.msg import ProductInfo 
+import os
+from dotenv import load_dotenv
 
 class ProductInfoProvider(Node):
     def __init__(self):
@@ -21,26 +20,12 @@ class ProductInfoProvider(Node):
             qos_profile=10
         )
 
-        lidar_qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=10
-        )
-
-        self.lidar_subscription = self.create_subscription(
-            msg_type=LaserScan,
-            topic='scan_filtered',
-            callback=self.scan_filtered_callback,
-            qos_profile=lidar_qos_profile
-        )
-
         # create publisher
         self.info_publisher = self.create_publisher(ProductInfo, 'product_info', 10)
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.publish_product_info)
         self.product_in_frame = False
         self.center_offset = float('inf')
-        self.product_distance = float('inf')
         self.product_diameter = float('inf')
 
         self.bridge = CvBridge()
@@ -57,9 +42,7 @@ class ProductInfoProvider(Node):
         msg = ProductInfo()                                        
         msg.product_in_frame = self.product_in_frame
         msg.product_center_offset = self.center_offset
-        msg.product_distance = self.product_distance
         msg.product_diameter = self.product_diameter
-        # TODO: publish product distance and diameter
         self.info_publisher.publish(msg)
 
 
@@ -77,24 +60,8 @@ class ProductInfoProvider(Node):
             kernel = np.ones((5, 5), np.uint8)
             mask = cv2.erode(mask, kernel, iterations=1)
 
-            mask_image = pImage.fromarray(mask)
-            mask_bbox = mask_image.getbbox()
-
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            # if mask_bbox and key == 'blue':
-
-            #     # get bounding box
-            #     x1, y1, x2, y2 = mask_bbox
-            #     frame = cv2.rectangle(frame, pt1=(x1, y1), pt2=(x2, y2), color=self.colors[key], thickness=5)
-
-            #     # center of bbox
-            #     bbox_center = x1+(x2-x1)/2
-            #     self.center_offset = bbox_center - mask_image.width/2
-            #     self.product_in_frame = True 
-            # else:
-            #     self.product_in_frame = False
-            #     self.center_offset = 0.0
 
             if contours and key == 'blue':
                 largest_contour = max(contours, key=cv2.contourArea)
@@ -102,7 +69,7 @@ class ProductInfoProvider(Node):
                 cv2.circle(frame, (int(x), int(y)), int(radius), self.colors[key], 3)
 
                 self.product_in_frame = True 
-                self.center_offset = x - mask_image.width/2
+                self.center_offset = x - int(os.getenv('CAP_WIDTH', 320))/2
                 self.product_diameter = radius*2
             else:
                 self.product_in_frame = False
@@ -135,16 +102,12 @@ class ProductInfoProvider(Node):
             limits[key] = [lower_limit, upper_limit]
 
         return limits
-    
-
-    def scan_filtered_callback(self, msg):
-        distance = msg.ranges[0]
-        if distance > 0.0: # sometimes msg.ranges[0] is 0.0, ignore that
-            self.product_distance = distance # 1st laser is the one which goes straight forwards
 
 
 def main(args=None):
     rclpy.init(args=args)
+    load_dotenv()
+
     product_info_provider = ProductInfoProvider()
     rclpy.spin(product_info_provider)
 

@@ -1,14 +1,10 @@
 float64 product_diameter
 float64 product_diameter_tolerance
-float64 product_distance
-float64 product_distance_tolerance
 float64 product_center_offset
 float64 product_center_offset_tolerance
 ---
 float64 product_diameter
-float64 product_distance
 float64 product_center_offset
 ---
 float64 product_diameter
-float64 product_distance
 float64 product_center_offset

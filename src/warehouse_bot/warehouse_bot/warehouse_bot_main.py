@@ -184,8 +184,6 @@ class WarehouseBotMain(Node):
         
         goal_msg.product_diameter = float(os.getenv('PRODUCT_DIAMETER', 0.0))
         goal_msg.product_diameter_tolerance = float(os.getenv('PRODUCT_DIAMETER_TOLERANCE', 200.0))
-        goal_msg.product_distance = float(os.getenv('PRODUCT_DISTANCE', 0.15))
-        goal_msg.product_distance_tolerance = float(os.getenv('PRODUCT_DISTANCE_TOLERANCE', 0.01))
         goal_msg.product_center_offset = float(os.getenv('PRODUCT_CENTER_OFFSET', 0.0))
         goal_msg.product_center_offset_tolerance = float(os.getenv('PRODUCT_CENTER_OFFSET_TOLERANCE', 10.0))
 
@@ -214,7 +212,6 @@ class WarehouseBotMain(Node):
         if result is not None:
             print('####### ALIGN PRODUCT RESULT #########')
             print(f'diameter: {result.product_diameter}')
-            print(f'distance: {result.product_distance}')
             print(f'center offset: {result.product_center_offset}')
             self.start_idle()
 
@@ -229,7 +226,6 @@ class WarehouseBotMain(Node):
         if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
             print('####### ALIGN PRODUCT FEEDBACK #########')
             print(f'diameter: {feedback.product_diameter}')
-            print(f'distance: {feedback.product_distance}')
             print(f'center offset: {feedback.product_center_offset}')
 
 
