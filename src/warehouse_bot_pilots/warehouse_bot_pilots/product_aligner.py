@@ -7,6 +7,8 @@ from rclpy.action import ActionServer
 from warehouse_bot_interfaces.action import AlignProduct
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
+import os
+from dotenv import load_dotenv
 
 
 class ProductAligner(Node):
@@ -63,30 +65,30 @@ class ProductAligner(Node):
 
         print('def align_with_product...')
 
-        is_product_diameter_optimized = True
+        is_product_diameter_optimized = False
         is_product_center_offset_optimized = False
-        is_product_distance_optimized = False
+        is_product_distance_optimized = True
 
 
         while (not (is_product_diameter_optimized and is_product_center_offset_optimized and is_product_distance_optimized)):
             self.optimize_product_center_offset(goal_handle.request)
-            self.optimize_product_distance(goal_handle.request)
-            #self.optimize_product_diameter(goal_handle.request)
+            self.optimize_product_diameter(goal_handle.request)
+            #self.optimize_product_distance(goal_handle.request)
 
-            is_product_diameter_optimized = self.is_parameter_optimized(
-                goal=goal_handle.request.product_diameter, 
-                tolerance=goal_handle.request.product_diameter_tolerance, 
-                actual=self.current_product_diameter)
-            
             is_product_center_offset_optimized = self.is_parameter_optimized(
                 goal=goal_handle.request.product_center_offset, 
                 tolerance=goal_handle.request.product_center_offset_tolerance, 
                 actual=self.current_product_center_offset)
             
-            is_product_distance_optimized = self.is_parameter_optimized(
-                goal=goal_handle.request.product_distance, 
-                tolerance=goal_handle.request.product_distance_tolerance, 
-                actual=self.current_product_distance)
+            is_product_diameter_optimized = self.is_parameter_optimized(
+                goal=goal_handle.request.product_diameter, 
+                tolerance=goal_handle.request.product_diameter_tolerance, 
+                actual=self.current_product_diameter)
+            
+            # is_product_distance_optimized = self.is_parameter_optimized(
+            #     goal=goal_handle.request.product_distance, 
+            #     tolerance=goal_handle.request.product_distance_tolerance, 
+            #     actual=self.current_product_distance)
 
             self.provide_feedback(goal_handle)
             print(is_product_center_offset_optimized, is_product_diameter_optimized, is_product_distance_optimized)
@@ -98,7 +100,24 @@ class ProductAligner(Node):
         
         goal = request.product_diameter
         tolerance = request.product_diameter_tolerance
-        pass
+        
+        while not self.is_parameter_optimized(goal, tolerance, self.current_product_diameter):
+            diameter_error = self.current_product_diameter - goal 
+
+            direction = 1 if diameter_error < 0 else -1
+            scaling_factor = 0.5
+
+            diameter_error_normalized = abs(diameter_error) / int(os.getenv('CAP_WIDTH', 320)) # normalize offset between [0, 1]
+            abs_movement_speed = float(scaling_factor * (diameter_error_normalized ** 2))
+
+            movement_msg = Twist()
+            movement_msg.linear.x = self.clamp(value=abs_movement_speed, min_value=0.01, max_value=0.03) * direction # exponential decrease in speed
+            print(f'movement speed: {movement_msg.linear.x}')
+            self.cmd_vel_publisher.publish(movement_msg)
+
+        stop_msg = Twist()
+        stop_msg.linear.x = 0.0
+        self.cmd_vel_publisher.publish(stop_msg)
 
 
     def optimize_product_center_offset(self, request):
@@ -115,7 +134,7 @@ class ProductAligner(Node):
             abs_turn_speed = float(scaling_factor * (offset_normalized ** 2))
 
             turn_direction_msg = Twist()
-            turn_direction_msg.angular.z = self.clamp(value=abs_turn_speed, min_value=0.015, max_value=0.5) * direction
+            turn_direction_msg.angular.z = self.clamp(value=abs_turn_speed, min_value=0.02, max_value=0.5) * direction
             self.cmd_vel_publisher.publish(turn_direction_msg)
             print(f'turn speed: {turn_direction_msg.angular.z}')
 
@@ -170,7 +189,7 @@ class ProductAligner(Node):
     def product_info_callback(self, msg):
         # update product info
         self.current_product_distance = msg.product_distance
-        # self.current_product_diameter = msg.product_diameter
+        self.current_product_diameter = msg.product_diameter
         self.current_product_center_offset = msg.product_center_offset
         
     
@@ -181,6 +200,7 @@ class ProductAligner(Node):
 
 def main(args=None):
     rclpy.init(args=args)
+    load_dotenv()
 
     executor = MultiThreadedExecutor()
     product_aligner = ProductAligner()

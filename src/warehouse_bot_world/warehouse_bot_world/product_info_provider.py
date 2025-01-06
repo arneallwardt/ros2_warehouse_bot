@@ -41,7 +41,7 @@ class ProductInfoProvider(Node):
         self.product_in_frame = False
         self.center_offset = float('inf')
         self.product_distance = float('inf')
-
+        self.product_diameter = float('inf')
 
         self.bridge = CvBridge()
         self.colors = {
@@ -58,6 +58,7 @@ class ProductInfoProvider(Node):
         msg.product_in_frame = self.product_in_frame
         msg.product_center_offset = self.center_offset
         msg.product_distance = self.product_distance
+        msg.product_diameter = self.product_diameter
         # TODO: publish product distance and diameter
         self.info_publisher.publish(msg)
 
@@ -68,6 +69,7 @@ class ProductInfoProvider(Node):
         
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
+        # check every color provided
         for key, value in self.limits.items():
             lower_limit_hsv, upper_limit_hsv = value
             mask = cv2.inRange(hsv_frame, lower_limit_hsv, upper_limit_hsv)
@@ -78,19 +80,34 @@ class ProductInfoProvider(Node):
             mask_image = pImage.fromarray(mask)
             mask_bbox = mask_image.getbbox()
 
-            if mask_bbox and key == 'blue':
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-                # get bounding box
-                x1, y1, x2, y2 = mask_bbox
-                frame = cv2.rectangle(frame, pt1=(x1, y1), pt2=(x2, y2), color=self.colors[key], thickness=5)
+            # if mask_bbox and key == 'blue':
 
-                # center of bbox
-                bbox_center = x1+(x2-x1)/2
-                self.center_offset = bbox_center - mask_image.width/2
+            #     # get bounding box
+            #     x1, y1, x2, y2 = mask_bbox
+            #     frame = cv2.rectangle(frame, pt1=(x1, y1), pt2=(x2, y2), color=self.colors[key], thickness=5)
+
+            #     # center of bbox
+            #     bbox_center = x1+(x2-x1)/2
+            #     self.center_offset = bbox_center - mask_image.width/2
+            #     self.product_in_frame = True 
+            # else:
+            #     self.product_in_frame = False
+            #     self.center_offset = 0.0
+
+            if contours and key == 'blue':
+                largest_contour = max(contours, key=cv2.contourArea)
+                ((x, y), radius) = cv2.minEnclosingCircle(largest_contour)
+                cv2.circle(frame, (int(x), int(y)), int(radius), self.colors[key], 3)
+
                 self.product_in_frame = True 
+                self.center_offset = x - mask_image.width/2
+                self.product_diameter = radius*2
             else:
                 self.product_in_frame = False
-                self.center_offset = 0.0
+                self.center_offset = float('inf')
+                self.product_diameter = float('inf')
 
         cv2.imshow('frame', frame)
         cv2.waitKey(1) # wait 1 ms for correct framerate and user inputs
