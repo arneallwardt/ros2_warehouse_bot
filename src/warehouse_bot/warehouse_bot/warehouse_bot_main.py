@@ -41,7 +41,7 @@ class WarehouseBotMain(Node):
         # state transitions
         self.machine.add_transition(
             trigger='start_idle', 
-            source=['putting_down_product', 'universal'], 
+            source=['putting_down_product', 'universal', 'aligning_with_product'], 
             dest='idle') 
         
         self.machine.add_transition(
@@ -242,6 +242,8 @@ class WarehouseBotMain(Node):
 def main(args=None):
     rclpy.init(args=args)
     load_dotenv()
+
+    time.sleep(1) # wait till other packages are ready
 
     warehouse_bot_main = WarehouseBotMain()
     # warehouse_bot_main.start_navigation() TODO: uncomment when starting state is navigating
