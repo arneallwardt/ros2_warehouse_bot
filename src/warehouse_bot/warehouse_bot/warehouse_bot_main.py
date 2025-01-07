@@ -14,6 +14,7 @@ class WarehouseBotMain(Node):
         super().__init__('warehouse_bot_main')
         self._navigate_to_pose_action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._align_product_action_client = ActionClient(self, AlignProduct, 'align_product')
+        
         self.LOG_FEEDBACK = True
 
         # pose information
@@ -65,7 +66,8 @@ class WarehouseBotMain(Node):
         self.machine.add_transition(
             trigger='start_grabbing_product', 
             source=['aligning_with_product', 'universal'], 
-            dest='grabbing_product')
+            dest='grabbing_product',
+            after=self.call_product_gripper)
         
         self.machine.add_transition(
             trigger='start_putting_down_product', 
@@ -76,21 +78,29 @@ class WarehouseBotMain(Node):
             trigger='error', 
             source='*', 
             dest='error',
-            after=lambda: print('Error state'))
+            after=lambda: self.get_logger().error('Bot entered error state.'))
             
         self.machine.add_transition(
             trigger='start_universal', 
             source='*', 
             dest='universal') 
         
+    
+    ### grip product
+    def call_product_gripper(self):
+        if self.state != 'grabbing_product':
+            self.get_logger().info(f"warehouse_bot_main: wrong state for call_product_gripper(). Current state: {self.state}")
+            return 
+        self.get_logger().info('Entered grabbing_product_state!')
+        
 
     ### align_with_product
     def call_product_aligner(self):
         if self.state != 'aligning_with_product':
-            print(f"warehouse_bot_main: wrong state for call_product_aligner(). Current state: {self.state}")
+            self.get_logger().info(f"warehouse_bot_main: wrong state for call_product_aligner(). Current state: {self.state}")
             return 
         
-        print(f'calling product_aligner in current state: {self.state}')
+        self.get_logger().info(f'calling product_aligner in current state: {self.state}')
         self.send_align_product_goal()
 
 
@@ -112,7 +122,6 @@ class WarehouseBotMain(Node):
     def navigate_to_next_pose(self):
         self.get_logger().info('Navigating to next pose')
         pose = self.get_next_pose()
-        print(f'Navigating to pose: {pose}')
         self.send_navigate_to_pose_goal(pose)
 
 
@@ -210,10 +219,10 @@ class WarehouseBotMain(Node):
         result = future.result().result
 
         if result is not None:
-            print('####### ALIGN PRODUCT RESULT #########')
-            print(f'diameter: {result.product_diameter}')
-            print(f'center offset: {result.product_center_offset}')
-            self.start_idle()
+            self.get_logger().info('####### ALIGN PRODUCT RESULT #########')
+            self.get_logger().info(f'diameter: {result.product_diameter}')
+            self.get_logger().info(f'center offset: {result.product_center_offset}')
+            self.start_grabbing_product()
 
         else:
             self.get_logger().error('Empty align_product action result')
@@ -224,9 +233,9 @@ class WarehouseBotMain(Node):
         feedback = feedback_msg.feedback
 
         if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
-            print('####### ALIGN PRODUCT FEEDBACK #########')
-            print(f'diameter: {feedback.product_diameter}')
-            print(f'center offset: {feedback.product_center_offset}')
+            self.get_logger().info('####### ALIGN PRODUCT FEEDBACK #########')
+            self.get_logger().info(f'diameter: {feedback.product_diameter}')
+            self.get_logger().info(f'center offset: {feedback.product_center_offset}')
 
 
     ### Error
