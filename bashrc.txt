@@ -82,6 +82,7 @@ if [ -x /usr/bin/dircolors ]; then
     alias grep='grep --color=auto'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
+fi
 
 # colored GCC warnings and errors
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
@@ -139,6 +140,3 @@ echo "start the bot with: ros2 launch turtlebot3_bringup robot.launch.py"
 source ~/ros2_warehouse_bot/install/setup.bash
 
 export LDS_MODEL=LDS-01
-
-
--bash: /home/ubuntu/.bashrc: line 142: syntax error: unexpected end of file
