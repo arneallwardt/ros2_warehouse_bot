@@ -6,6 +6,8 @@ from nav2_msgs.action import NavigateToPose
 import time
 from transitions import Machine
 from warehouse_bot_interfaces.action import AlignProduct
+from warehouse_bot_interfaces.action import ManipulateProduct
+from open_manipulator_msgs.srv import SetJointPosition
 import os
 from dotenv import load_dotenv
 
@@ -14,8 +16,9 @@ class WarehouseBotMain(Node):
         super().__init__('warehouse_bot_main')
         self._navigate_to_pose_action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._align_product_action_client = ActionClient(self, AlignProduct, 'align_product')
-        self.LOG_FEEDBACK = True
+        self._manipulate_product_action_client = ActionClient(self, ManipulateProduct, 'manipulate_product')
 
+        self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
         # pose information
         self.current_goal_pose = 0
         self.goal_poses = [
@@ -65,32 +68,48 @@ class WarehouseBotMain(Node):
         self.machine.add_transition(
             trigger='start_grabbing_product', 
             source=['aligning_with_product', 'universal'], 
-            dest='grabbing_product')
+            dest='grabbing_product',
+            after=self.call_product_manipulator)
         
         self.machine.add_transition(
             trigger='start_putting_down_product', 
             source=['navigating' , 'universal'], 
-            dest='putting_down_product')
+            dest='putting_down_product',
+            after=self.call_product_manipulator)
         
         self.machine.add_transition(
             trigger='error', 
             source='*', 
             dest='error',
-            after=lambda: print('Error state'))
+            after=lambda: self.get_logger().error('Bot entered error state.'))
             
         self.machine.add_transition(
             trigger='start_universal', 
             source='*', 
             dest='universal') 
         
+    
+    ### grip product
+    def call_product_manipulator(self):
+        if self.state == 'grabbing_product':
+            task = 'grip'
+        elif self.state == 'putting_down_product':
+            task = 'release'
+        else:
+            self.get_logger().info(f"warehouse_bot_main: wrong state for call_product_gripper(). Current state: {self.state}")
+            return 
+        
+        self.get_logger().info(f'calling call_product_gripper in current state: {self.state}')
+        self.send_manipulate_product_goal(task)
+        
 
     ### align_with_product
     def call_product_aligner(self):
         if self.state != 'aligning_with_product':
-            print(f"warehouse_bot_main: wrong state for call_product_aligner(). Current state: {self.state}")
+            self.get_logger().info(f"warehouse_bot_main: wrong state for call_product_aligner(). Current state: {self.state}")
             return 
         
-        print(f'calling product_aligner in current state: {self.state}')
+        self.get_logger().info(f'calling product_aligner in current state: {self.state}')
         self.send_align_product_goal()
 
 
@@ -112,7 +131,6 @@ class WarehouseBotMain(Node):
     def navigate_to_next_pose(self):
         self.get_logger().info('Navigating to next pose')
         pose = self.get_next_pose()
-        print(f'Navigating to pose: {pose}')
         self.send_navigate_to_pose_goal(pose)
 
 
@@ -210,10 +228,10 @@ class WarehouseBotMain(Node):
         result = future.result().result
 
         if result is not None:
-            print('####### ALIGN PRODUCT RESULT #########')
-            print(f'diameter: {result.product_diameter}')
-            print(f'center offset: {result.product_center_offset}')
-            self.start_idle()
+            self.get_logger().info('####### ALIGN PRODUCT RESULT #########')
+            self.get_logger().info(f'diameter: {result.product_diameter}')
+            self.get_logger().info(f'center offset: {result.product_center_offset}')
+            self.start_grabbing_product()
 
         else:
             self.get_logger().error('Empty align_product action result')
@@ -224,9 +242,56 @@ class WarehouseBotMain(Node):
         feedback = feedback_msg.feedback
 
         if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
-            print('####### ALIGN PRODUCT FEEDBACK #########')
-            print(f'diameter: {feedback.product_diameter}')
-            print(f'center offset: {feedback.product_center_offset}')
+            self.get_logger().info('####### ALIGN PRODUCT FEEDBACK #########')
+            self.get_logger().info(f'diameter: {feedback.product_diameter}')
+            self.get_logger().info(f'center offset: {feedback.product_center_offset}')
+
+
+    ### manipulate_product action 
+
+    def send_manipulate_product_goal(self, task):
+        goal_msg = ManipulateProduct.Goal()
+        
+        goal_msg.task = task
+
+        self._manipulate_product_action_client.wait_for_server()
+
+        self.manipulate_product_send_goal_future = self._manipulate_product_action_client.send_goal_async(goal_msg, feedback_callback=self.manipulate_product_feedback_callback)
+
+        self.manipulate_product_send_goal_future.add_done_callback(self.manipulate_product_goal_response_callback) 
+
+    
+    def manipulate_product_goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('ManipulateProduct Goal rejected :(')
+            return
+
+        self.get_logger().info('ManipulateProduct Goal accepted!')
+
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(self.manipulate_product_result_callback)
+
+
+    def manipulate_product_result_callback(self, future):
+        result = future.result().result
+
+        if result is not None:
+            self.get_logger().info('####### MANIPULATE PRODUCT RESULT #########')
+            self.get_logger().info(f'holding product: {result.is_holding_product}')
+            # self.start_idle()
+
+        else:
+            self.get_logger().error('Empty manipulate_product action result')
+            self.error()
+
+    
+    def manipulate_product_feedback_callback(self, feedback_msg):
+        feedback = feedback_msg.feedback
+
+        if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
+            self.get_logger().info('####### MANIPULATE PRODUCT FEEDBACK #########')
+            self.get_logger().info(f'holding product: {feedback.is_holding_product}')
 
 
     ### Error

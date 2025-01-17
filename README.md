@@ -14,6 +14,10 @@
 - Add xacro support: `sudo apt install ros-humble-xacro`
 - Install GUI for joint-state-publisher: `sudo apt install ros-humble-joint-state-publisher-gui`
 
+### OpenManipulator
+[Quick start guide](https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide/)
+- **remember to install open_manipulator_msgs also on host pc since it is required for turtlebot_main!**
+
 ### Package specific
 
 - Check for updates in the package: `rosdep install -i --from-path src --rosdistro humble -y`

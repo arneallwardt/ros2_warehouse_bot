@@ -15,7 +15,7 @@ class ProductAligner(Node):
     def __init__(self):
         super().__init__('product_aligner')
 
-        self.get_logger().info('product_info_provider initialized.')
+        self.get_logger().info('product_aligner initialized.')
 
         # keep track of theese using the subscription on /product_info
         self.current_product_diameter = 0.0
@@ -99,7 +99,6 @@ class ProductAligner(Node):
 
             movement_msg = Twist()
             movement_msg.linear.x = self.clamp(value=abs_movement_speed, min_value=0.01, max_value=0.03) * direction # exponential decrease in speed
-            print(f'movement speed: {movement_msg.linear.x}')
             self.cmd_vel_publisher.publish(movement_msg)
 
         stop_msg = Twist()
@@ -123,7 +122,6 @@ class ProductAligner(Node):
             turn_direction_msg = Twist()
             turn_direction_msg.angular.z = self.clamp(value=abs_turn_speed, min_value=0.02, max_value=0.5) * direction
             self.cmd_vel_publisher.publish(turn_direction_msg)
-            print(f'turn speed: {turn_direction_msg.angular.z}')
 
         stop_msg = Twist()
         stop_msg.angular.z = 0.0
@@ -131,12 +129,7 @@ class ProductAligner(Node):
 
 
     def is_parameter_optimized(self, goal, tolerance, actual):
-        print(f'goal: {goal}')
-        print(f'tolerance: {tolerance}')
-        print(f'actual: {actual}')
-        is_optim = abs(goal-actual) < tolerance
-        print(is_optim)
-        return is_optim
+        return abs(goal-actual) < tolerance
 
 
     def provide_feedback(self, goal_handle):
@@ -154,8 +147,8 @@ class ProductAligner(Node):
         self.current_product_center_offset = msg.product_center_offset
         
     
+    # makes sure that parameters are in a sensible range
     def clamp(self, value, min_value, max_value):
-        # make sure that parameters are in a sensible range
         return max(min(value, max_value), min_value)
 
 

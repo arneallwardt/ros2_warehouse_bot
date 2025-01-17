@@ -1,0 +1,207 @@
+ubuntu@ubuntu:~$ mkdir robotis_ws
+ubuntu@ubuntu:~$ cd robotis_ws/
+ubuntu@ubuntu:~/robotis_ws$ git clone -b ros2 https://github.com/ROBOTIS-GIT/dynamixel-workbench.git
+Cloning into 'dynamixel-workbench'...
+remote: Enumerating objects: 6325, done.
+remote: Counting objects: 100% (173/173), done.
+remote: Compressing objects: 100% (68/68), done.
+remote: Total 6325 (delta 137), reused 105 (delta 105), pack-reused 6152 (from 4)
+Receiving objects: 100% (6325/6325), 1.30 MiB | 3.79 MiB/s, done.
+Resolving deltas: 100% (4199/4199), done.
+ubuntu@ubuntu:~/robotis_ws$ git clone -b humble-devel https://github.com/ROBOTIS-GIT/open_manipulator.git
+Cloning into 'open_manipulator'...
+remote: Enumerating objects: 5886, done.
+remote: Counting objects: 100% (367/367), done.
+remote: Compressing objects: 100% (200/200), done.
+remote: Total 5886 (delta 182), reused 288 (delta 136), pack-reused 5519 (from 2)
+Receiving objects: 100% (5886/5886), 23.23 MiB | 4.06 MiB/s, done.
+Resolving deltas: 100% (3432/3432), done.
+ubuntu@ubuntu:~/robotis_ws$ git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_msgs.git
+Cloning into 'open_manipulator_msgs'...
+remote: Enumerating objects: 159, done.
+remote: Counting objects: 100% (38/38), done.
+remote: Compressing objects: 100% (24/24), done.
+remote: Total 159 (delta 13), reused 20 (delta 6), pack-reused 121 (from 1)
+Receiving objects: 100% (159/159), 31.79 KiB | 756.00 KiB/s, done.
+Resolving deltas: 100% (72/72), done.
+ubuntu@ubuntu:~/robotis_ws$ git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_dependencies.git
+Cloning into 'open_manipulator_dependencies'...
+remote: Enumerating objects: 68, done.
+remote: Counting objects: 100% (68/68), done.
+remote: Compressing objects: 100% (49/49), done.
+remote: Total 68 (delta 14), reused 67 (delta 14), pack-reused 0 (from 0)
+Receiving objects: 100% (68/68), 50.80 KiB | 1.27 MiB/s, done.
+Resolving deltas: 100% (14/14), done.
+ubuntu@ubuntu:~/robotis_ws$ git clone -b ros2 https://github.com/ROBOTIS-GIT/robotis_manipulator.git
+Cloning into 'robotis_manipulator'...
+remote: Enumerating objects: 1272, done.
+remote: Counting objects: 100% (47/47), done.
+remote: Compressing objects: 100% (35/35), done.
+remote: Total 1272 (delta 13), reused 9 (delta 3), pack-reused 1225 (from 1)
+Receiving objects: 100% (1272/1272), 315.99 KiB | 1.55 MiB/s, done.
+Resolving deltas: 100% (903/903), done.
+ubuntu@ubuntu:~/robotis_ws$ colcon build --symlink-install
+[6.244s] WARNING:colcon.colcon_core.package_selection:Some selected packages are already built in one or more underlay workspaces:
+	'open_manipulator_x_description' is in: /home/ubuntu/colcon_ws/install/open_manipulator_x_description
+If a package in a merged underlay workspace is overridden and it installs headers, then all packages in the overlay must sort their include directories by workspace order. Failure to do so may result in build failures or undefined behavior at run time.
+If the overridden package is used by another package in any underlay, then the overriding package in the overlay must be API and ABI compatible or undefined behavior at run time may occur.
+
+If you understand the risks and want to override a package anyways, add the following to the command line:
+	--allow-overriding open_manipulator_x_description
+
+This may be promoted to an error in a future release of colcon-override-check.
+Starting >>> cmake_modules
+Starting >>> dynamixel_workbench_toolbox     
+Starting >>> open_manipulator_msgs                                                            
+Starting >>> open_manipulator_x_description
+Finished <<< cmake_modules [23.4s]                                     
+Starting >>> robotis_manipulator
+Finished <<< open_manipulator_x_description [23.5s]                                
+Finished <<< dynamixel_workbench_toolbox [45.7s]                                        
+Starting >>> dynamixel_workbench
+Finished <<< dynamixel_workbench [36.9s]                                                  
+[Processing: open_manipulator_msgs, robotis_manipulator]                                   
+[Processing: open_manipulator_msgs, robotis_manipulator]                                   
+[Processing: open_manipulator_msgs, robotis_manipulator]                                   
+[Processing: open_manipulator_msgs, robotis_manipulator]or_msgs:build 54% - 3min 23.4s] ...
+Finished <<< robotis_manipulator [3min 29s]                                                
+Starting >>> open_manipulator_x_libs
+[Processing: open_manipulator_msgs, open_manipulator_x_libs]                               
+[Processing: open_manipulator_msgs, open_manipulator_x_libs]                               
+[Processing: open_manipulator_msgs, open_manipulator_x_libs]                                
+Finished <<< open_manipulator_msgs [5min 29s]                                            
+Starting >>> open_manipulator_x_teleop
+Finished <<< open_manipulator_x_teleop [16.3s]                                               
+[Processing: open_manipulator_x_libs]                                        
+--- stderr: open_manipulator_x_libs                                           
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp: In member function ‘virtual void kinematics::SolverUsingCRAndJacobian::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp:25:54: warning: unused parameter ‘arg’ [-Wunused-parameter]
+   25 | void SolverUsingCRAndJacobian::setOption(const void *arg){}
+      |                                          ~~~~~~~~~~~~^~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp: In member function ‘virtual void custom_trajectory::Line::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp:93:34: warning: unused parameter ‘arg’ [-Wunused-parameter]
+   93 | void Line::setOption(const void *arg) {}
+      |                      ~~~~~~~~~~~~^~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp: In member function ‘virtual void custom_trajectory::Circle::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp:167:36: warning: unused parameter ‘arg’ [-Wunused-parameter]
+  167 | void Circle::setOption(const void *arg){}
+      |                        ~~~~~~~~~~~~^~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp: In member function ‘virtual void custom_trajectory::Rhombus::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp:260:37: warning: unused parameter ‘arg’ [-Wunused-parameter]
+  260 | void Rhombus::setOption(const void *arg){}
+      |                         ~~~~~~~~~~~~^~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp: In member function ‘bool dynamixel::JointDynamixel::write_goal_position(std::vector<unsigned char>, std::vector<double>)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:268:11: warning: ISO C++ forbids variable length array ‘id_array’ [-Wvla]
+  268 |   uint8_t id_array[actuator_id.size()];
+      |           ^~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:269:11: warning: ISO C++ forbids variable length array ‘goal_position’ [-Wvla]
+  269 |   int32_t goal_position[actuator_id.size()];
+      |           ^~~~~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp: In member function ‘virtual void custom_trajectory::Heart::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/custom_trajectory.cpp:334:35: warning: unused parameter ‘arg’ [-Wunused-parameter]
+  334 | void Heart::setOption(const void *arg){}
+      |                       ~~~~~~~~~~~~^~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp: In member function ‘std::vector<robotis_manipulator::_Point> dynamixel::JointDynamixel::receive_all_dynamixel_value(std::vector<unsigned char>)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:293:11: warning: ISO C++ forbids variable length array ‘id_array’ [-Wvla]
+  293 |   uint8_t id_array[actuator_id.size()];
+      |           ^~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:297:11: warning: ISO C++ forbids variable length array ‘get_current’ [-Wvla]
+  297 |   int32_t get_current[actuator_id.size()];
+      |           ^~~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:298:11: warning: ISO C++ forbids variable length array ‘get_velocity’ [-Wvla]
+  298 |   int32_t get_velocity[actuator_id.size()];
+      |           ^~~~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:299:11: warning: ISO C++ forbids variable length array ‘get_position’ [-Wvla]
+  299 |   int32_t get_position[actuator_id.size()];
+      |           ^~~~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp: In member function ‘bool dynamixel::JointDynamixelProfileControl::write_goal_profiling_control_value(std::vector<unsigned char>, std::vector<robotis_manipulator::_Point>)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:604:11: warning: ISO C++ forbids variable length array ‘id_array’ [-Wvla]
+  604 |   uint8_t id_array[actuator_id.size()];
+      |           ^~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:605:11: warning: ISO C++ forbids variable length array ‘goal_value’ [-Wvla]
+  605 |   int32_t goal_value[actuator_id.size()];
+      |           ^~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp: In member function ‘std::vector<robotis_manipulator::_Point> dynamixel::JointDynamixelProfileControl::receive_all_dynamixel_value(std::vector<unsigned char>)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:641:11: warning: ISO C++ forbids variable length array ‘id_array’ [-Wvla]
+  641 |   uint8_t id_array[actuator_id.size()];
+      |           ^~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:645:11: warning: ISO C++ forbids variable length array ‘get_current’ [-Wvla]
+  645 |   int32_t get_current[actuator_id.size()];
+      |           ^~~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:646:11: warning: ISO C++ forbids variable length array ‘get_velocity’ [-Wvla]
+  646 |   int32_t get_velocity[actuator_id.size()];
+      |           ^~~~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/dynamixel.cpp:647:11: warning: ISO C++ forbids variable length array ‘get_position’ [-Wvla]
+  647 |   int32_t get_position[actuator_id.size()];
+      |           ^~~~~~~~~~~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp: In member function ‘virtual void kinematics::SolverUsingCRAndSRJacobian::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp:179:56: warning: unused parameter ‘arg’ [-Wunused-parameter]
+  179 | void SolverUsingCRAndSRJacobian::setOption(const void *arg){}
+      |                                            ~~~~~~~~~~~~^~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp: In member function ‘virtual void kinematics::SolverUsingCRAndSRPositionOnlyJacobian::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp:445:68: warning: unused parameter ‘arg’ [-Wunused-parameter]
+  445 | void SolverUsingCRAndSRPositionOnlyJacobian::setOption(const void *arg){}
+      |                                                        ~~~~~~~~~~~~^~~
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp: In member function ‘virtual void kinematics::SolverCustomizedforOMChain::setOption(const void*)’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_libs/src/kinematics.cpp:711:56: warning: unused parameter ‘arg’ [-Wunused-parameter]
+  711 | void SolverCustomizedforOMChain::setOption(const void *arg){}
+      |                                            ~~~~~~~~~~~~^~~
+---
+Finished <<< open_manipulator_x_libs [2min 48s]
+Starting >>> open_manipulator_x_controller
+[Processing: open_manipulator_x_controller]                                   
+[Processing: open_manipulator_x_controller]                                   
+[Processing: open_manipulator_x_controller]                                        
+[Processing: open_manipulator_x_controller][8min 46.9s] [8/10 complete] [open_manipulator_x_controller:build 50% - 2min 1.4s]
+[Processing: open_manipulator_x_controller]                                        
+[Processing: open_manipulator_x_controller]                                        
+[Processing: open_manipulator_x_controller]ator_x_controller:build 50% - 3min 31.7s]
+[Processing: open_manipulator_x_controller]ator_x_controller:build 50% - 4min 1.9s] 
+[Processing: open_manipulator_x_controller]ator_x_controller:build 50% - 4min 32.3s]
+[Processing: open_manipulator_x_controller]                                         
+--- stderr: open_manipulator_x_controller                                            
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_controller/src/open_manipulator_x_controller.cpp: In member function ‘void open_manipulator_x_controller::OpenManipulatorXController::init_publisher()’:
+/home/ubuntu/robotis_ws/open_manipulator/open_manipulator_x_controller/src/open_manipulator_x_controller.cpp:103:21: warning: unused variable ‘name’ [-Wunused-variable]
+  103 |   for (auto const & name:tools_name)
+      |                     ^~~~
+---
+Finished <<< open_manipulator_x_controller [5min 26s]
+Starting >>> open_manipulator
+Finished <<< open_manipulator [12.3s]                           
+
+Summary: 10 packages finished [12min 24s]
+  2 packages had stderr output: open_manipulator_x_controller open_manipulator_x_libs
+
+
+
+
+-------------------------------------------------------------------------------------------
+
+
+
+
+ubuntu@ubuntu:~/robotis_ws$ . install/local_setup.bash
+ubuntu@ubuntu:~/robotis_ws$ ros2 run open_manipulator_x_controller create_udev_rules
+
+This script copies the udev rule to /etc/udev/rules.d/
+to configure the U2D2 device for the OpenMANIPULATOR.
+
+[sudo] password for ubuntu: 
+
+Reload rules
+
+ubuntu@ubuntu:~/robotis_ws$ cat /sys/bus/usb-serial/devices/ttyUSB0/latency_timer 
+cat: /sys/bus/usb-serial/devices/ttyUSB0/latency_timer: No such file or directory
+ubuntu@ubuntu:~/robotis_ws$ ls /dev/ttyUSB*
+/dev/ttyUSB0  /dev/ttyUSB1
+ubuntu@ubuntu:~/robotis_ws$ cat /sys/bus/usb-serial/devices/ttyUSB1/latency_timer 
+1
+ubuntu@ubuntu:~/robotis_ws$ sudo usermod -aG dialout ubuntu
+ubuntu@ubuntu:~/robotis_ws$ ros2 launch open_manipulator_x_controller open_manipulator_x_controller
+open_manipulator_x_controller.launch.py    open_manipulator_x_controller_params.yaml
+ubuntu@ubuntu:~/robotis_ws$ ros2 launch open_manipulator_x_controller open_manipulator_x_controller.launch.py
+[INFO] [launch]: All log files can be found below /home/ubuntu/.ros/log/2025-01-14-09-36-12-495709-ubuntu-4166
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [open_manipulator_x_controller-1]: process started with pid [4167]
+[ERROR] [open_manipulator_x_controller-1]: process has died [pid 4167, exit code -11, cmd '/home/ubuntu/robotis_ws/install/open_manipulator_x_controller/lib/open_manipulator_x_controller/open_manipulator_x_controller /dev/ttyUSB0 1000000 --ros-args -r __node:=open_manipulator_x_controller --params-file /home/ubuntu/robotis_ws/install/open_manipulator_x_controller/share/open_manipulator_x_controller/param/open_manipulator_x_controller_params.yaml'].
+ubuntu@ubuntu:~/robotis_ws$ 
