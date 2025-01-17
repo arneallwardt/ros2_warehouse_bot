@@ -1,0 +1,6 @@
+ros2 service call /open_manipulator/goal_task_space_path open_manipulator_msgs/srv/SetKinematicsPose "{end_effector_name: 'gripper', kinematics_pose: {pose: {position: {x: -0.005, y: -0.21, z: 0.185}, orientation: {w: 0.638, x: 0.244, y: 0.224, z: -0.694}}}, path_time: 2.0}"
+waiting for service to become available...
+requester: making request: open_manipulator_msgs.srv.SetKinematicsPose_Request(planning_group='', end_effector_name='gripper', kinematics_pose=open_manipulator_msgs.msg.KinematicsPose(pose=geometry_msgs.msg.Pose(position=geometry_msgs.msg.Point(x=-0.005, y=-0.21, z=0.185), orientation=geometry_msgs.msg.Quaternion(x=0.244, y=0.224, z=-0.694, w=0.638)), max_accelerations_scaling_factor=0.0, max_velocity_scaling_factor=0.0, tolerance=0.0), path_time=2.0)
+
+response:
+open_manipulator_msgs.srv.SetKinematicsPose_Response(is_planned=True)
