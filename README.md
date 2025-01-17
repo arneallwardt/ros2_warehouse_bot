@@ -16,6 +16,7 @@
 
 ### OpenManipulator
 [Quick start guide](https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide/)
+- **remember to install open_manipulator_msgs also on host pc since it is required for turtlebot_main!**
 
 ### Package specific
 

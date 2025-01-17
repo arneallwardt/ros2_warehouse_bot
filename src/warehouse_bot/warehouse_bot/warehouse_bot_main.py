@@ -15,8 +15,7 @@ class WarehouseBotMain(Node):
         super().__init__('warehouse_bot_main')
         self._navigate_to_pose_action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._align_product_action_client = ActionClient(self, AlignProduct, 'align_product')
-        self._joint_postion_client = self.create_client(SetJointPosition, '/goal_joint_space_path')
-        self.LOG_FEEDBACK = True
+        self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
 
         # pose information
         self.current_goal_pose = 0
@@ -272,7 +271,7 @@ def main(args=None):
 
     warehouse_bot_main = WarehouseBotMain()
     # warehouse_bot_main.start_navigation() TODO: uncomment when starting state is navigating
-    warehouse_bot_main.start_aligning_with_product()
+    warehouse_bot_main.start_grabbing_product()
     
     rclpy.spin(warehouse_bot_main)
 
