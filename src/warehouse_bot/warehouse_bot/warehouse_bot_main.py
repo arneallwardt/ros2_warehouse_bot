@@ -308,7 +308,7 @@ def main(args=None):
 
     warehouse_bot_main = WarehouseBotMain()
     # warehouse_bot_main.start_navigation() TODO: uncomment when starting state is navigating
-    warehouse_bot_main.start_grabbing_product()
+    warehouse_bot_main.start_aligning_with_product()
     
     rclpy.spin(warehouse_bot_main)
 
