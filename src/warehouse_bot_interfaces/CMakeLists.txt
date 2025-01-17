@@ -12,7 +12,7 @@ find_package(rosidl_default_generators REQUIRED) # for interfaces
 set(msg_files
   "msg/ProductInfo.msg"
   "action/AlignProduct.action"
-  "action/GripProduct.action"
+  "action/ManipulateProduct.action"
 )
 
 # msg / srv go here

@@ -4,24 +4,25 @@ from open_manipulator_msgs.srv import SetJointPosition
 from rclpy.node import Node
 from transitions import Machine
 from rclpy.action import ActionServer
-from warehouse_bot_interfaces.action import GripProduct
+from warehouse_bot_interfaces.action import ManipulateProduct
 from dotenv import load_dotenv
 import os
 import time
 
 
-class ProductGripper(Node):
+class ProductManipulator(Node):
     def __init__(self):
-        super().__init__('product_gripper')
-        self.holding_product = False
+        super().__init__('product_manipulator')
+        self.is_holding_product = False
         self._arm_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
         self._gripper_client = self.create_client(SetJointPosition, '/open_manipulator/goal_tool_control')
-        
+        self.goal_handle = None
+
         self._action_server = ActionServer(
             self,
-            GripProduct,
-            'grip_product',
-            execute_callback=self.grip_product_callback)
+            ManipulateProduct,
+            'manipulate_product',
+            execute_callback=self.manipulate_product_callback)
         
         # state machine implementation
         states = [
@@ -80,7 +81,7 @@ class ProductGripper(Node):
             after=self.cancel_action())
     
 
-        self.get_logger().info('product_gripper initialized.')
+        self.get_logger().info('product_manipulator initialized.')
 
 
     def sendSetJointPositionRequest(self, client, joint_names, joint_positions):
@@ -101,11 +102,12 @@ class ProductGripper(Node):
             
             # remember if robot is currently holding a product
             if self.state == 'grip_product':
-                self.holding_product = True
+                self.is_holding_product = True
             elif self.state == 'release_product':
-                self.holding_product = False
+                self.is_holding_product = False
 
             self.get_logger().info('Openmanipulator reached its goal pose.')
+            self.provide_feedback()
         else:
             self.get_logger().error('Error while moving openmanipulator to goal pose.')
 
@@ -157,64 +159,74 @@ class ProductGripper(Node):
             joint_names=['gripper'],
             joint_positions=joint_positions
         )
-
         
-    def test_grip_product(self):
+
+    def manipulate_product_callback(self, goal_handle):
+        self.get_logger().info('def grip_product_callback')
+        self.goal_handle = goal_handle
+
         # make sure to start in idle state
         if not self.state == 'idle':
             self.get_logger().info('Not in idle state, entering idle...')
             self.start_idle()
-        else:
-            self.get_logger().info('bot is in idle state. starting to grip product.')
-            print('already in idle')
-        self.start_hovering_over_product()
-        self.start_aligning_gripper_with_product()
-        self.start_gripping_product()
-        self.start_idle()
-        self.start_lowering_product()
-        self.start_releasing_product()
-        self.start_idle()
 
-    def grip_product_callback(self, goal_handle):
-        self.get_logger().info('def grip_product_callback')
+        if goal_handle.request.task == 'grip':
+            self.get_logger().info('starting to grip product.')
+            self.start_hovering_over_product()
+            self.start_aligning_gripper_with_product()
+            self.start_gripping_product()
+            self.start_idle()
+            self.start_lowering_product()
+            self.start_releasing_product()
+            self.start_idle()
+        elif goal_handle.request.task == 'release':
+            pass
+        else:
+            self.get_logger().info('No valid task for product_manipulator. Aborting action...')
+            goal_handle.canceled()
+            self.reset_goal_handle()
+            return ManipulateProduct.Result()
 
         success = self.grip_product(goal_handle)
 
         if success:
-            result = GripProduct.Result()
             goal_handle.succeed()
-            
-        # TODO: set result attributes
-
-        return result
-
-
-    def grip_product(self, goal_handle):
-        # TODO: implementation
-        pass
+            result = ManipulateProduct.Result()
+            result.is_holding_product = self.is_holding_product
+            self.reset_goal_handle()
+            return result
 
 
-    def provide_feedback(self, goal_handle):
-        feedback = GripProduct.Feedback()
+    def provide_feedback(self):
+        feedback = ManipulateProduct.Feedback()
+        feedback.is_holding_product = self.is_holding_product
+        
+        if self.goal_handle and self.goal_handle.is_active:
+            self.goal_handle.publish_feedback(feedback)
 
-        # TODO: set feedback attributes
-
-        goal_handle.publish_feedback(feedback)
 
     def cancel_action(self):
-         self.get_logger().info('product_gripper entered exit state. Cancelling Action.')
+        self.get_logger().info('An Error occured. Cancelling Action.')
+
+        if self.goal_handle and self.goal_handle.is_active:
+            self.goal_handle.canceled
+            self.reset_goal_handle()
+        
+        return ManipulateProduct.Result()
+         
+
+    def reset_goal_handle(self):
+        self.goal_handle = None
 
 
 def main(args=None):
     rclpy.init(args=args)
     load_dotenv()
 
-    product_gripper = ProductGripper()
-    product_gripper.start_idle()
-    print('PRODUCT GRIPPER INSTANTIATED')
-    product_gripper.test_grip_product()
+    product_manipulator = ProductManipulator()
+    product_manipulator.start_idle()
 
-    rclpy.spin(product_gripper)
+    rclpy.spin(product_manipulator)
     rclpy.shutdown()    
 
 if __name__ == '__main__':
