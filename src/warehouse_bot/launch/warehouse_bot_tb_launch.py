@@ -15,9 +15,9 @@ def generate_launch_description():
     )
 
     open_manipulator_controller_launch_file = os.path.join(
-        get_package_share_directory('open_manipulator_x_controller'),
+        get_package_share_directory('warehouse_bot'),
         'launch',
-        'open_manipulator_x_controller.launch.py'
+        'open_manipulator_x_controller_modified.launch.py'
     )
 
     return LaunchDescription([ 
