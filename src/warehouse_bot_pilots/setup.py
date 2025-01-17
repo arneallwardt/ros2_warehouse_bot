@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'product_aligner = warehouse_bot_pilots.product_aligner:main',
+            'product_gripper = warehouse_bot_pilots.product_gripper:main',
         ],
     },
 )

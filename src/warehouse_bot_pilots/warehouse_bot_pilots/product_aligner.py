@@ -15,7 +15,7 @@ class ProductAligner(Node):
     def __init__(self):
         super().__init__('product_aligner')
 
-        self.get_logger().info('product_info_provider initialized.')
+        self.get_logger().info('product_aligner initialized.')
 
         # keep track of theese using the subscription on /product_info
         self.current_product_diameter = 0.0
