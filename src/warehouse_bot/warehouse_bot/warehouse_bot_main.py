@@ -15,8 +15,8 @@ class WarehouseBotMain(Node):
         super().__init__('warehouse_bot_main')
         self._navigate_to_pose_action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._align_product_action_client = ActionClient(self, AlignProduct, 'align_product')
-        self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
 
+        self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
         # pose information
         self.current_goal_pose = 0
         self.goal_poses = [
@@ -94,14 +94,17 @@ class WarehouseBotMain(Node):
         self.get_logger().info('Entered grabbing_product_state!')
 
         self._joint_postion_client.wait_for_service()
+        self.get_logger().info('SetJointPosition Client available!')
+
 
         request = SetJointPosition.Request()
-        request.joint_name = ['joint1', 'joint2', 'joint3', 'joint4']
-        request.position = [
-            float(os.getenv('JOINT1_POS', 0.0)),
-            float(os.getenv('JOINT2_POS', 0.0)), 
-            float(os.getenv('JOINT3_POS', 0.0)), 
-            float(os.getenv('JOINT4_POS', 0.0))]
+        request.joint_position.joint_name = ['joint1', 'joint2', 'joint3', 'joint4']
+        request.joint_position.position= [
+            float(os.getenv('JOINT1_IDLE', 0.0)),
+            float(os.getenv('JOINT2_IDLE', 0.0)), 
+            float(os.getenv('JOINT3_IDLE', 0.0)), 
+            float(os.getenv('JOINT4_IDLE', 0.0))
+        ]
         request.path_time = float(os.getenv('PATH_TIME', 2.0))
 
         joint_pos_future = self._joint_postion_client.call_async(request)
