@@ -16,14 +16,13 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Arne',
-    maintainer_email='fx.zype@gmail.com',
+    maintainer='Arne Allwardt',
+    maintainer_email='arne.allwardt@th-brandenburg.de',
     description='Package for an autonomous warehouse bot based on turtlebot3',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            # here, the entry points for nodes that belong to this package are defined
             'warehouse_bot_main = warehouse_bot.warehouse_bot_main:main'
         ],
     },
