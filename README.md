@@ -77,5 +77,5 @@ This file contains information about entry points and launch files. If you want 
 - start navigation: `ros2 launch warehouse_bot warehouse_bot_navigation_launch.py`
 
 ## Misc
-
+- start bot like this if lidar/openmanipulator ports are messed up: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
 - use this to reset turtlebot movement: `ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'`
