@@ -10,6 +10,7 @@ def generate_launch_description():
             package='warehouse_bot_pilots',
             executable='product_aligner',
             name='product_aligner',
+            emulate_tty=True,
             output='screen',
         ),
 
@@ -18,6 +19,7 @@ def generate_launch_description():
             package='warehouse_bot_pilots',
             executable='product_manipulator',
             name='product_manipulator',
+            emulate_tty=True,
             output='screen',
         ),
     ])

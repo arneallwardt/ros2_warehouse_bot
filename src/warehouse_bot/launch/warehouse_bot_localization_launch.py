@@ -11,10 +11,10 @@ def generate_launch_description():
     config_dir = os.path.join(workspace_root, 'src', 'warehouse_bot', 'config')
 
     # twist_mux
-    twist_mux_config = os.path.join(
-        config_dir,
-        'twist_mux.yaml'
-    )
+    # twist_mux_config = os.path.join(
+    #     config_dir,
+    #     'twist_mux.yaml'
+    # )
 
     # slam_toolbox
     slam_params_file = os.path.join(
@@ -36,14 +36,14 @@ def generate_launch_description():
     return LaunchDescription([ 
 
         # twist_mux
-        Node(
-            package='twist_mux',
-            executable='twist_mux',
-            name='twist_mux',
-            output='screen',
-            parameters=[twist_mux_config],
-            remappings=[('cmd_vel_out', 'diff_cont/cmd_vel_unstamped')]
-        ),
+        # Node(
+        #     package='twist_mux',
+        #     executable='twist_mux',
+        #     name='twist_mux',
+        #     output='screen',
+        #     parameters=[twist_mux_config],
+        #     remappings=[('cmd_vel_out', 'diff_cont/cmd_vel_unstamped')]
+        # ),
 
         # slam_toolbox
         IncludeLaunchDescription(
