@@ -13,7 +13,7 @@ def generate_launch_description():
     # slam_toolbox
     slam_params_file = os.path.join(
         config_dir,
-        'mapper_params_online_sync.yaml' #'mapper_params_online_async.yaml' 
+        'mapper_params_online_async.yaml' #'mapper_params_online_async.yaml' 
     )
     slam_toolbox_launch_file = os.path.join(
         get_package_share_directory('slam_toolbox'),

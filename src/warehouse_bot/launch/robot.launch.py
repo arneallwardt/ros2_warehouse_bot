@@ -57,7 +57,7 @@ def generate_launch_description():
             default=os.path.join(get_package_share_directory('hls_lfcd_lds_driver'), 'launch'))
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
-    usb_port_lds = LaunchConfiguration('usb_port_lds', default='/dev/ttyUSB0')
+    usb_port_lds = LaunchConfiguration('usb_port_lds', default='/dev/ttyUSB0') # new
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -75,7 +75,7 @@ def generate_launch_description():
             default_value=tb3_param_dir,
             description='Full path to turtlebot3 parameter file to load'),
 
-        DeclareLaunchArgument(
+        DeclareLaunchArgument( # new
             'usb_port_lds', 
             default_value=usb_port_lds, 
             description='USB port for LDS'
@@ -89,7 +89,7 @@ def generate_launch_description():
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([lidar_pkg_dir, LDS_LAUNCH_FILE]),
-            launch_arguments={'port': usb_port_lds, 'frame_id': 'base_scan'}.items(),
+            launch_arguments={'port': usb_port_lds, 'frame_id': 'base_scan'}.items(), # replace hardcoded value right here
         ),
 
         Node(
