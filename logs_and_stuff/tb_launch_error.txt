@@ -1,0 +1,50 @@
+ubuntu@ubuntu:~$ ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1
+[INFO] [launch]: All log files can be found below /home/ubuntu/.ros/log/2025-01-21-10-45-11-168386-ubuntu-5647
+[INFO] [launch]: Default logging verbosity is set to INFO
+urdf_file_name : turtlebot3_waffle_pi.urdf
+[INFO] [scan_filter-6]: process started with pid [5658]
+[INFO] [robot_state_publisher-1]: process started with pid [5648]
+[INFO] [hlds_laser_publisher-2]: process started with pid [5650]
+[INFO] [turtlebot3_ros-3]: process started with pid [5652]
+[INFO] [open_manipulator_x_controller-4]: process started with pid [5654]
+[INFO] [image_provider-5]: process started with pid [5656]
+[turtlebot3_ros-3] [INFO] [1737452712.483314062] [turtlebot3_node]: Init TurtleBot3 Node Main
+[turtlebot3_ros-3] [INFO] [1737452712.484664732] [turtlebot3_node]: Init DynamixelSDKWrapper
+[turtlebot3_ros-3] [INFO] [1737452712.488045652] [DynamixelSDKWrapper]: Succeeded to open the port(/dev/ttyACM0)!
+[turtlebot3_ros-3] [INFO] [1737452712.494218068] [DynamixelSDKWrapper]: Succeeded to change the baudrate!
+[hlds_laser_publisher-2] [INFO] [1737452712.526377539] [hlds_laser_publisher]: Init hlds_laser_publisher Node Main
+[hlds_laser_publisher-2] [INFO] [1737452712.527676907] [hlds_laser_publisher]: port : /dev/ttyUSB0 frame_id : base_scan
+[turtlebot3_ros-3] [INFO] [1737452712.532815683] [turtlebot3_node]: Start Calibration of Gyro
+[robot_state_publisher-1] [INFO] [1737452712.673626210] [robot_state_publisher]: got segment base_footprint
+[robot_state_publisher-1] [INFO] [1737452712.674549487] [robot_state_publisher]: got segment base_link
+[robot_state_publisher-1] [INFO] [1737452712.674843600] [robot_state_publisher]: got segment base_scan
+[robot_state_publisher-1] [INFO] [1737452712.674967714] [robot_state_publisher]: got segment camera_link
+[robot_state_publisher-1] [INFO] [1737452712.675018547] [robot_state_publisher]: got segment camera_rgb_frame
+[robot_state_publisher-1] [INFO] [1737452712.675067140] [robot_state_publisher]: got segment camera_rgb_optical_frame
+[robot_state_publisher-1] [INFO] [1737452712.675116567] [robot_state_publisher]: got segment caster_back_left_link
+[robot_state_publisher-1] [INFO] [1737452712.675165160] [robot_state_publisher]: got segment caster_back_right_link
+[robot_state_publisher-1] [INFO] [1737452712.675212191] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-1] [INFO] [1737452712.675272347] [robot_state_publisher]: got segment wheel_left_link
+[robot_state_publisher-1] [INFO] [1737452712.675322451] [robot_state_publisher]: got segment wheel_right_link
+[ERROR] [hlds_laser_publisher-2]: process has died [pid 5650, exit code 255, cmd '/opt/ros/humble/lib/hls_lfcd_lds_driver/hlds_laser_publisher --ros-args -r __node:=hlds_laser_publisher --params-file /tmp/launch_params_7d7xv35q'].
+[open_manipulator_x_controller-4] [INFO] [1737452713.283349957] [open_manipulator.open_manipulator_x_controller]: Succeeded to Initialise OpenManipulator-X Controller
+[turtlebot3_ros-3] [INFO] [1737452717.533444311] [turtlebot3_node]: Calibration End
+[turtlebot3_ros-3] [INFO] [1737452717.533721393] [turtlebot3_node]: Add Motors
+[turtlebot3_ros-3] [INFO] [1737452717.536067318] [turtlebot3_node]: Add Wheels
+[turtlebot3_ros-3] [INFO] [1737452717.537947621] [turtlebot3_node]: Add Sensors
+[turtlebot3_ros-3] [INFO] [1737452717.560423027] [turtlebot3_node]: Succeeded to create battery state publisher
+[turtlebot3_ros-3] [INFO] [1737452717.571686095] [turtlebot3_node]: Succeeded to create imu publisher
+[turtlebot3_ros-3] [INFO] [1737452717.582766194] [turtlebot3_node]: Succeeded to create sensor state publisher
+[turtlebot3_ros-3] [INFO] [1737452717.588413041] [turtlebot3_node]: Succeeded to create joint state publisher
+[turtlebot3_ros-3] [INFO] [1737452717.588666216] [turtlebot3_node]: Add Devices
+[turtlebot3_ros-3] [INFO] [1737452717.588792101] [turtlebot3_node]: Succeeded to create motor power server
+[turtlebot3_ros-3] [INFO] [1737452717.598379813] [turtlebot3_node]: Succeeded to create reset server
+[turtlebot3_ros-3] [INFO] [1737452717.609020852] [turtlebot3_node]: Succeeded to create sound server
+[turtlebot3_ros-3] [INFO] [1737452717.617432945] [turtlebot3_node]: Run!
+[turtlebot3_ros-3] [INFO] [1737452717.722505690] [diff_drive_controller]: Init Odometry
+[turtlebot3_ros-3] [INFO] [1737452717.759644354] [diff_drive_controller]: Run!
+[image_provider-5] [INFO] [1737452723.626847395] [image_provider]: Initializing camera...
+[image_provider-5] [ WARN:0] global ./modules/videoio/src/cap_gstreamer.cpp (2075) handleMessage OpenCV | GStreamer warning: Embedded video playback halted; module v4l2src0 reported: Failed to allocate required memory.
+[image_provider-5] [ WARN:0] global ./modules/videoio/src/cap_gstreamer.cpp (1053) open OpenCV | GStreamer warning: unable to start pipeline
+[image_provider-5] [ WARN:0] global ./modules/videoio/src/cap_gstreamer.cpp (616) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+[image_provider-5] [INFO] [1737452728.352593003] [image_provider]: image_provider successfully initialized!
