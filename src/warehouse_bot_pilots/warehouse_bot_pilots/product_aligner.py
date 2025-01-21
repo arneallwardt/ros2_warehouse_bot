@@ -22,8 +22,9 @@ class ProductAligner(Node):
         self.current_product_center_offset = 0.0
         self.is_product_in_frame = False
         self.FEEDBACK_ITERATIONS = 100
-        self.PRODUCT_NOT_SEEN_COUNT_BASE = 100
-        self.PRODUCT_NOT_SEEN_COUNT = 100
+        self.PRODUCT_NOT_SEEN_COUNT_BASE = 20
+        self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
+        self.CAN_CANCEL_ACTION = False
         self.turn_direction_angular_z = 0.0
         self.turn_direction_linear_x = 0.0
         self.goal_handle = None
@@ -57,9 +58,12 @@ class ProductAligner(Node):
 
         success = self.align_with_product(goal_handle)
 
-        if success:
+        # TODO: this is garbage
+        if isinstance(success, bool) and success:
             result = AlignProduct.Result()
             goal_handle.succeed()
+        else:
+            result = success
             
         result.product_diameter = self.current_product_diameter
         result.product_center_offset = self.current_product_center_offset
@@ -76,6 +80,9 @@ class ProductAligner(Node):
 
 
         while (not (is_product_diameter_optimized and is_product_center_offset_optimized)):
+
+            if self.CAN_CANCEL_ACTION:
+                return self.cancel_action(goal_handle)
 
             if self.is_product_in_frame: # only optmize if product in frame or else it will use float('inf') values
                 self.optimize_product_center_offset()
@@ -170,18 +177,17 @@ class ProductAligner(Node):
             self.PRODUCT_NOT_SEEN_COUNT -= 1
             self.get_logger().info(f"product not seen count: {self.PRODUCT_NOT_SEEN_COUNT}")
             if self.PRODUCT_NOT_SEEN_COUNT <= 0:
-                self.cancel_action()
+                self.CAN_CANCEL_ACTION = True
         else:
             self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
 
     
-    def cancel_action(self):
+    def cancel_action(self, goal_handle):
         self.get_logger().info('An Error occured. Cancelling Action.')
 
-        if self.goal_handle and self.goal_handle.is_active:
-            self.goal_handle.canceled
-            self.reset_state()
-            self.reset_goal_handle()
+        goal_handle.canceled
+        self.reset_state()
+        self.reset_goal_handle()
         
         return AlignProduct.Result()
     
@@ -191,6 +197,7 @@ class ProductAligner(Node):
         self.current_product_center_offset = 0.0
         self.turn_direction_angular_z = 0.0
         self.turn_direction_linear_x = 0.0
+        self.CAN_CANCEL_ACTION = True
 
         self.FEEDBACK_ITERATIONS = 100
         self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE

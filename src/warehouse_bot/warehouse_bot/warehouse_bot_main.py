@@ -49,7 +49,7 @@ class WarehouseBotMain(Node):
         
         self.machine.add_transition(
             trigger='start_navigation', 
-            source=['idle', 'detecting_product', 'grabbing_product', 'universal'], 
+            source=['idle', 'detecting_product', 'aligning_with_product', 'grabbing_product', 'universal'], 
             dest='navigating',
             after=self.navigate_to_next_pose)
         
@@ -119,18 +119,6 @@ class WarehouseBotMain(Node):
 
     ### navigating
 
-    def wait_for_next_pose(self):
-        print(f'Waiting. Current state: {self.state}')
-        time.sleep(3)
-
-        self.current_goal_pose += 1
-        if self.current_goal_pose < len(self.goal_poses):
-            self.start_navigation()
-        else:
-            self.get_logger().info('No more poses to visit')
-            self.start_idle()
-
-
     def navigate_to_next_pose(self):
         self.get_logger().info('Navigating to next pose')
         pose = self.get_next_pose()
@@ -138,6 +126,10 @@ class WarehouseBotMain(Node):
 
 
     def get_next_pose(self):
+
+        if self.current_goal_pose >= len(self.goal_poses):
+            self.get_logger().info('No more poses to visit')
+            self.start_idle()
 
         # Erstelle eine Zielposition
         pose = PoseStamped()
@@ -149,6 +141,8 @@ class WarehouseBotMain(Node):
         pose.pose.position.y = self.goal_poses[self.current_goal_pose]['y']  # Ziel-Y-Koordinate
         pose.pose.orientation.z = self.goal_poses[self.current_goal_pose]['z']  # Rotation um die Z-Achse
         pose.pose.orientation.w = self.goal_poses[self.current_goal_pose]['w']  # Keine Drehung (quaternion)
+
+        self.current_goal_pose += 1
 
         return pose
 
@@ -186,7 +180,6 @@ class WarehouseBotMain(Node):
         result = future.result().result
         if result is not None:
             self.get_logger().info('Bot has reached the goal pose!')
-            self.get_logger().info(f'Current pose feedback: {result.current_pose.pose}')
             self.start_detecting_product()
         else:
             self.get_logger().error('Error while traveling to the goal pose.')
@@ -222,6 +215,7 @@ class WarehouseBotMain(Node):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info('AlignProduct Goal rejected :(')
+            self.error()
             return
 
         self.get_logger().info('AlignProduct Goal accepted :)')
@@ -240,8 +234,8 @@ class WarehouseBotMain(Node):
             self.start_grabbing_product()
 
         else:
-            self.get_logger().error('Empty align_product action result')
-            self.error()
+            self.get_logger().error('align_product not successfull')
+            self.start_navigation()
 
     
     def align_product_feedback_callback(self, feedback_msg):

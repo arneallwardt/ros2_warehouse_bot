@@ -187,6 +187,7 @@ class ProductManipulator(Node):
             self.reset_goal_handle()
             return ManipulateProduct.Result()
 
+        # TODO: this method does not exist
         success = self.grip_product(goal_handle)
 
         if success:
