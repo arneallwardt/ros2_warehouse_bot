@@ -57,7 +57,7 @@ class WarehouseBotMain(Node):
             trigger='start_detecting_product', 
             source=['navigating', 'aligning_with_product', 'grabbing_product', 'universal'], 
             dest='detecting_product',
-            after=self.wait_for_next_pose)
+            after=self.tmp_start_aligning)
         
         self.machine.add_transition(
             trigger='start_aligning_with_product', 
@@ -88,6 +88,9 @@ class WarehouseBotMain(Node):
             source='*', 
             dest='universal') 
         
+
+    def tmp_start_aligning(self): # TODO: remove
+        self.start_aligning_with_product()
     
     ### grip product
     def call_product_manipulator(self):
@@ -307,8 +310,8 @@ def main(args=None):
     time.sleep(1) # wait till other packages are ready
 
     warehouse_bot_main = WarehouseBotMain()
-    # warehouse_bot_main.start_navigation() TODO: uncomment when starting state is navigating
-    warehouse_bot_main.start_aligning_with_product()
+    warehouse_bot_main.start_navigation()
+    # warehouse_bot_main.start_aligning_with_product()
     
     rclpy.spin(warehouse_bot_main)
 
