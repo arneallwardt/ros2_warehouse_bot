@@ -22,9 +22,9 @@ class WarehouseBotMain(Node):
         # pose information
         self.current_goal_pose = 0
         self.goal_poses = [
-            {'x': 1.45, 'y': 0.45, 'z': 0.0, 'w': 1.0},
-            {'x': 1.45, 'y': 0.0, 'z': 0.0, 'w': 1.0},
-            {'x': 1.45, 'y': -0.45, 'z': 0.0, 'w': 1.0},
+            {'x': 1.7, 'y': 0.45, 'z': 0.0, 'w': 1.0},
+            {'x': 1.7, 'y': 0.0, 'z': 0.0, 'w': 1.0},
+            {'x': 1.7, 'y': -0.45, 'z': 0.0, 'w': 1.0},
             {'x': 0.0, 'y': 0.0, 'z': 0.0, 'w': 0.0},
         ]
 
@@ -186,6 +186,7 @@ class WarehouseBotMain(Node):
         result = future.result().result
         if result is not None:
             self.get_logger().info('Bot has reached the goal pose!')
+            self.get_logger().info(f'Current pose feedback: {result.current_pose.pose}')
             self.start_detecting_product()
         else:
             self.get_logger().error('Error while traveling to the goal pose.')
@@ -208,8 +209,10 @@ class WarehouseBotMain(Node):
         goal_msg.product_center_offset = float(os.getenv('PRODUCT_CENTER_OFFSET', 0.0))
         goal_msg.product_center_offset_tolerance = float(os.getenv('PRODUCT_CENTER_OFFSET_TOLERANCE', 10.0))
 
+        self.get_logger().info('waiting for align product action server')
         self._align_product_action_client.wait_for_server()
 
+        self.get_logger().info('Sendign align product goal')
         self.align_product_send_goal_future = self._align_product_action_client.send_goal_async(goal_msg, feedback_callback=self.align_product_feedback_callback)
 
         self.align_product_send_goal_future.add_done_callback(self.align_product_goal_response_callback) 

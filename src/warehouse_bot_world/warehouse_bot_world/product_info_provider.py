@@ -30,7 +30,7 @@ class ProductInfoProvider(Node):
 
         self.bridge = CvBridge()
         self.colors = {
-            "blue": [173, 83, 0],
+            "blue": [76, 34, 7],
         }
         self.limits = self.get_limits()
 
@@ -57,8 +57,8 @@ class ProductInfoProvider(Node):
             lower_limit_hsv, upper_limit_hsv = value
             mask = cv2.inRange(hsv_frame, lower_limit_hsv, upper_limit_hsv)
 
-            kernel = np.ones((5, 5), np.uint8)
-            mask = cv2.erode(mask, kernel, iterations=1)
+            # kernel = np.ones((5, 5), np.uint8)
+            # mask = cv2.erode(mask, kernel, iterations=1)
 
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
