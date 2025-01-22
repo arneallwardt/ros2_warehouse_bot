@@ -6,6 +6,7 @@ from rclpy.action import ActionServer
 from warehouse_bot_interfaces.action import OptimizePose
 from tf2_ros import Buffer, TransformListener
 from dotenv import load_dotenv
+from geometry_msgs.msg import PoseStamped
 
 
 class PoseOptimizer(Node):
@@ -27,10 +28,25 @@ class PoseOptimizer(Node):
             OptimizePose,
             'optimize_pose',
             execute_callback=self.optimize_pose_callback)
+        
+    
+    def get_current_pose(self):
+        try: 
+            transform = self.tf_buffer.lookup_transform('map', 'base_footprint', rclpy.time.Time()) # get map -> base_footprint which is essentially current pose of bot
+            pose = PoseStamped()
+            pose.header = transform.header
+            pose.pose.position.x = transform.transform.translation.x
+            pose.pose.position.y = transform.transform.translation.y
+            pose.pose.position.z = transform.transform.translation.z
+            pose.pose.orientation = transform.transform.rotation
+            return pose
+        except Exception as e:
+            self.get_logger().error(f'Pose Optimizer: failed to get current pose: {str(e)}')
+            return None
 
 
     def optimize_pose_callback(self, goal_handle):
-        self.get_logger().info('def align_product_callback')
+        self.get_logger().info('def optimize_pose_callback')
         self.goal_handle = goal_handle
         self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
 

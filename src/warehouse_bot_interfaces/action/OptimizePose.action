@@ -1,5 +1,6 @@
-float64 goal_pose
+geometry_msgs/PoseStamped goal_pose
+float64 tolerance
 ---
 bool success
 ---
-float64 current_pose
+geometry_msgs/PoseStamped current_pose
