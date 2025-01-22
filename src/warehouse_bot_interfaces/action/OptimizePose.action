@@ -1,0 +1,5 @@
+float64 goal_pose
+---
+bool success
+---
+float64 current_pose

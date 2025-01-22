@@ -13,6 +13,7 @@ set(msg_files
   "msg/ProductInfo.msg"
   "action/AlignProduct.action"
   "action/ManipulateProduct.action"
+  "action/OptimizePose.action"
 )
 
 # msg / srv go here
