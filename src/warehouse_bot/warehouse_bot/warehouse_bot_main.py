@@ -228,14 +228,18 @@ class WarehouseBotMain(Node):
         result = future.result().result
 
         if result is not None:
-            self.get_logger().info('####### ALIGN PRODUCT RESULT #########')
-            self.get_logger().info(f'diameter: {result.product_diameter}')
-            self.get_logger().info(f'center offset: {result.product_center_offset}')
-            self.start_grabbing_product()
+            if result.success:
+                self.get_logger().info('####### ALIGN PRODUCT RESULT #########')
+                self.get_logger().info(f'diameter: {result.product_diameter}')
+                self.get_logger().info(f'center offset: {result.product_center_offset}')
+                self.start_grabbing_product()
+            else:
+                self.get_logger().info('####### ALIGN PRODUCT NOT SUCCESSFULL ########')
+                self.start_navigation()
 
         else:
-            self.get_logger().error('align_product not successfull')
-            self.start_navigation()
+            self.get_logger().error('####### ERROR IN ALIGN PRODUCT ########')
+            self.error()
 
     
     def align_product_feedback_callback(self, feedback_msg):

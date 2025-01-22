@@ -18,7 +18,7 @@ def generate_launch_description():
     slam_toolbox_launch_file = os.path.join(
         get_package_share_directory('slam_toolbox'),
         'launch',
-        'localization_launch.py'
+        'online_async_launch.py'
     )
 
     # rviz2 

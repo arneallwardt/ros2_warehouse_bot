@@ -130,8 +130,8 @@ controller_server:
     # Goal checker parameters
     precise_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.05 
-      yaw_goal_tolerance: 0.20
+      xy_goal_tolerance: 0.02 # CHANGE (0.05)
+      yaw_goal_tolerance: 0.20 # CHANGE (0.20)
       stateful: True
 
     # general_goal_checker:
@@ -194,7 +194,7 @@ local_costmap:
       rolling_window: true
       width: 3
       height: 3
-      resolution: 0.05
+      resolution: 0.05 # CHANGE (0.05)
       robot_radius: 0.22
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
@@ -235,7 +235,7 @@ global_costmap:
       robot_base_frame: base_link
       use_sim_time: True
       robot_radius: 0.22
-      resolution: 0.05
+      resolution: 0.05 # CHANGE (0.05)
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
@@ -283,7 +283,7 @@ planner_server:
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
+      tolerance: 0.3 # CHANGE (0.5)
       use_astar: false
       allow_unknown: true
 

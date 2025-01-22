@@ -22,7 +22,7 @@ class ProductAligner(Node):
         self.current_product_center_offset = 0.0
         self.is_product_in_frame = False
         self.FEEDBACK_ITERATIONS = 100
-        self.PRODUCT_NOT_SEEN_COUNT_BASE = 20
+        self.PRODUCT_NOT_SEEN_COUNT_BASE = 100
         self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
         self.CAN_CANCEL_ACTION = False
         self.turn_direction_angular_z = 0.0
@@ -57,17 +57,14 @@ class ProductAligner(Node):
         self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
 
         success = self.align_with_product(goal_handle)
-
-        # TODO: this is garbage
-        if isinstance(success, bool) and success:
-            result = AlignProduct.Result()
-            goal_handle.succeed()
-        else:
-            result = success
             
+        result = AlignProduct.Result()
+
         result.product_diameter = self.current_product_diameter
         result.product_center_offset = self.current_product_center_offset
-        self.reset_goal_handle()
+        result.success = success
+
+        self.reset_state()
 
         return result
 
@@ -78,15 +75,16 @@ class ProductAligner(Node):
         is_product_center_offset_optimized = False
         feedback_iterations = self.FEEDBACK_ITERATIONS
 
-
         while (not (is_product_diameter_optimized and is_product_center_offset_optimized)):
 
             if self.CAN_CANCEL_ACTION:
-                return self.cancel_action(goal_handle)
+                return False
 
             if self.is_product_in_frame: # only optmize if product in frame or else it will use float('inf') values
                 self.optimize_product_center_offset()
                 self.optimize_product_diameter(goal_handle.request)
+            else:
+                self.stop_movement()
 
             is_product_center_offset_optimized = self.is_parameter_optimized(
                 goal=goal_handle.request.product_center_offset, 
@@ -102,7 +100,12 @@ class ProductAligner(Node):
             if feedback_iterations <= 0:
                 self.provide_feedback(goal_handle)
                 feedback_iterations = self.FEEDBACK_ITERATIONS
-        
+
+        self.stop_movement()
+
+        return True
+    
+    def stop_movement(self):
         stop_msg = Twist()
         stop_msg.angular.z = 0.0
         stop_msg.linear.x = 0.0
@@ -111,8 +114,6 @@ class ProductAligner(Node):
         self.turn_direction_angular_z = 0.0
 
         self.cmd_vel_publisher.publish(stop_msg)
-
-        return True
     
 
     def optimize_product_diameter(self, request):
@@ -180,16 +181,6 @@ class ProductAligner(Node):
                 self.CAN_CANCEL_ACTION = True
         else:
             self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
-
-    
-    def cancel_action(self, goal_handle):
-        self.get_logger().info('An Error occured. Cancelling Action.')
-
-        goal_handle.canceled
-        self.reset_state()
-        self.reset_goal_handle()
-        
-        return AlignProduct.Result()
     
     
     def reset_state(self):
@@ -197,14 +188,10 @@ class ProductAligner(Node):
         self.current_product_center_offset = 0.0
         self.turn_direction_angular_z = 0.0
         self.turn_direction_linear_x = 0.0
-        self.CAN_CANCEL_ACTION = True
+        self.CAN_CANCEL_ACTION = False
 
         self.FEEDBACK_ITERATIONS = 100
         self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
-    
-
-    def reset_goal_handle(self):
-        self.goal_handle = None
 
     
     # makes sure that parameters are in a sensible range
