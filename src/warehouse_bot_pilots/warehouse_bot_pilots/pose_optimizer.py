@@ -34,7 +34,11 @@ class PoseOptimizer(Node):
     
     def get_current_pose(self):
         try: 
-            transform = self.tf_buffer.lookup_transform('map', 'base_footprint', rclpy.time.Time()) # get map -> base_footprint which is essentially current pose of bot
+            transform = self.tf_buffer.lookup_transform(
+                'map', 
+                'base_footprint', 
+                rclpy.time.Time()) # get map -> base_footprint which is essentially current pose of bot
+
             pose = PoseStamped()
             pose.header = transform.header
             pose.pose.position.x = transform.transform.translation.x
@@ -65,6 +69,12 @@ class PoseOptimizer(Node):
 
             # get current pose information
             current_pose = self.get_current_pose()
+
+            self.get_logger().info(f"current pose after method call: {current_pose}")
+
+            if current_pose is None:
+                continue
+
             current_x = current_pose.pose.position.x
             current_y = current_pose.pose.position.y
             current_orientation = self.get_yaw_from_quaternion(current_pose.pose.orientation)
@@ -77,7 +87,7 @@ class PoseOptimizer(Node):
             # calculate current difference
             dx = goal_x - current_x
             dy = goal_y - current_y
-            xy_error = math.sqrt(dx**2 + dx**2)
+            xy_error = math.sqrt(dx**2 + dy**2)
             angle_to_goal = math.atan2(dy, dx)
             yaw_error = angle_to_goal - current_orientation
 
