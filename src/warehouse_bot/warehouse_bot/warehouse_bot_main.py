@@ -22,10 +22,30 @@ class WarehouseBotMain(Node):
         # pose information
         self.current_goal_pose = 0
         self.goal_poses = [
-            {'x': 1.7, 'y': 0.45, 'z': 0.0, 'w': 1.0},
-            {'x': 1.7, 'y': 0.0, 'z': 0.0, 'w': 1.0},
-            {'x': 1.7, 'y': -0.45, 'z': 0.0, 'w': 1.0},
-            {'x': 0.0, 'y': 0.0, 'z': 0.0, 'w': 0.0},
+            {
+                'x': float(os.getenv('GOAL_1_X', 0.0)), 
+                'y': float(os.getenv('GOAL_1_Y', 0.0)), 
+                'z': float(os.getenv('GOAL_1_Z', 0.0)), 
+                'w': float(os.getenv('GOAL_1_W', 0.0)),
+            },
+            {
+                'x': float(os.getenv('GOAL_2_X', 0.0)), 
+                'y': float(os.getenv('GOAL_2_Y', 0.0)), 
+                'z': float(os.getenv('GOAL_2_Z', 0.0)), 
+                'w': float(os.getenv('GOAL_2_W', 0.0)),
+            },
+            {
+                'x': float(os.getenv('GOAL_3_X', 0.0)), 
+                'y': float(os.getenv('GOAL_3_Y', 0.0)), 
+                'z': float(os.getenv('GOAL_3_Z', 0.0)),
+                'w': float(os.getenv('GOAL_3_W', 0.0)),
+            },
+            {
+                'x': float(os.getenv('HOME_X', 0.0)), 
+                'y': float(os.getenv('HOME_Y', 0.0)), 
+                'z': float(os.getenv('HOME_Z', 0.0)), 
+                'w': float(os.getenv('HOME_W', 0.0)),
+            },
         ]
 
         # state machine implementation
@@ -55,7 +75,7 @@ class WarehouseBotMain(Node):
         
         self.machine.add_transition(
             trigger='start_optimizing_pose', 
-            source=['navigating', 'aligning_with_product', 'grabbing_product', 'universal'], 
+            source=['navigating', 'aligning_with_product', 'grabbing_product', 'universal'],
             dest='optimizing_pose',
             after=self.call_pose_optimizer)
         
@@ -129,11 +149,11 @@ class WarehouseBotMain(Node):
 
     def navigate_to_next_pose(self):
         self.get_logger().info('Navigating to next pose')
-        pose = self.get_next_pose()
+        pose = self.get_current_goal_pose(increment=False) # only increment after optimizing pose
         self.send_navigate_to_pose_goal(pose)
 
 
-    def get_next_pose(self):
+    def get_current_goal_pose(self, increment):
 
         if self.current_goal_pose >= len(self.goal_poses):
             self.get_logger().info('No more poses to visit')
@@ -142,15 +162,15 @@ class WarehouseBotMain(Node):
         # Erstelle eine Zielposition
         pose = PoseStamped()
 
-        pose.header.frame_id = 'map'  # Das Koordinatensystem
+        pose.header.frame_id = 'map'  
         pose.header.stamp = self.get_clock().now().to_msg()
 
-        pose.pose.position.x = self.goal_poses[self.current_goal_pose]['x']  # Ziel-X-Koordinate
-        pose.pose.position.y = self.goal_poses[self.current_goal_pose]['y']  # Ziel-Y-Koordinate
-        pose.pose.orientation.z = self.goal_poses[self.current_goal_pose]['z']  # Rotation um die Z-Achse
-        pose.pose.orientation.w = self.goal_poses[self.current_goal_pose]['w']  # Keine Drehung (quaternion)
-
-        self.current_goal_pose += 1
+        pose.pose.position.x = self.goal_poses[self.current_goal_pose]['x']  
+        pose.pose.position.y = self.goal_poses[self.current_goal_pose]['y']  
+        pose.pose.orientation.z = self.goal_poses[self.current_goal_pose]['z']  # TODO: drop z since it is essentially not used
+        pose.pose.orientation.w = self.goal_poses[self.current_goal_pose]['w']  
+        if increment:
+            self.current_goal_pose += 1
 
         return pose
 
@@ -203,10 +223,12 @@ class WarehouseBotMain(Node):
 
     ### OPTIMIZE POSE ACTION
 
-    def send_optimize_pose_goal(self, task):
+    def send_optimize_pose_goal(self):
         goal_msg = OptimizePose.Goal()
         
-        # goal_msg.task = task # TODO: goal definition
+        goal_msg.goal_pose = self.get_current_goal_pose(increment=True)
+        goal_msg.xy_goal_tolerance = float(os.getenv('XY_GOAL_POSE_TOLERANCE', 0.1))
+        goal_msg.yaw_goal_tolerance = float(os.getenv('YAW_GOAL_POSE_TOLERANCE', 0.1))
 
         self._optimize_pose_action_client.wait_for_server()
 
@@ -235,7 +257,6 @@ class WarehouseBotMain(Node):
             
             if result.success:
                 self.get_logger().info('####### SUCCESS #########')
-                # TODO: log
             else: 
                 self.get_logger().info('####### ERROR #########')
 
@@ -249,7 +270,9 @@ class WarehouseBotMain(Node):
 
         if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
             self.get_logger().info('####### OPTIMIZE POSE FEEDBACK #########')
-            # TODO: log
+            self.get_logger().info(f'current xy_error: {feedback.current_xy_error}')
+            self.get_logger().info(f'current yaw_error: {feedback.current_yaw_error}')
+            self.get_logger().info(f'current yaw_error: {feedback.current_pose.pose}')
 
 
 
@@ -373,7 +396,7 @@ def main(args=None):
     time.sleep(1) # wait till other packages are ready
 
     warehouse_bot_main = WarehouseBotMain()
-    warehouse_bot_main.start_navigation()
+    warehouse_bot_main.start_optimizing_pose()
     # warehouse_bot_main.start_aligning_with_product()
     
     rclpy.spin(warehouse_bot_main)
