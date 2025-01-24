@@ -112,12 +112,13 @@ class WarehouseBotMain(Node):
     ### ACTION SERVER CALLS ###    
     
     def call_pose_optimizer(self):
-        if self.state != 'optimizing_pose':
-            self.get_logger().info(f"warehouse_bot_main: wrong state for call_pose_optimizer(). Current state: {self.state}")
-            return
+        # if self.state != 'optimizing_pose':
+        #     self.get_logger().info(f"warehouse_bot_main: wrong state for call_pose_optimizer(). Current state: {self.state}")
+        #     return
         
-        self.get_logger().info(f'calling pose_optimizer in current state: {self.state}')
-        self.send_optimize_pose_goal()
+        # self.get_logger().info(f'calling pose_optimizer in current state: {self.state}')
+        # self.send_optimize_pose_goal()
+        self.start_aligning_with_product()
     
 
     ### align_with_product
@@ -210,6 +211,7 @@ class WarehouseBotMain(Node):
         if result is not None:
             self.get_logger().info('Bot has reached the goal pose!')
             self.start_optimizing_pose()
+
         else:
             self.get_logger().error('Error while traveling to the goal pose.')
             self.error()
@@ -396,7 +398,8 @@ def main(args=None):
     time.sleep(1) # wait till other packages are ready
 
     warehouse_bot_main = WarehouseBotMain()
-    warehouse_bot_main.start_optimizing_pose()
+    warehouse_bot_main.start_navigation()    
+    # warehouse_bot_main.start_optimizing_pose()
     # warehouse_bot_main.start_aligning_with_product()
     
     rclpy.spin(warehouse_bot_main)
