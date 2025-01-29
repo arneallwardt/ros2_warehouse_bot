@@ -17,7 +17,7 @@ slam_toolbox:
     #use_map_saver: true
     mode: localization
 
-    map_file_name: /home/kilab/ros2_warehouse_bot/maps/003_async_new/kilab_async_003_new
+    map_file_name: /home/kilab/ros2_warehouse_bot/maps/kilab_async_003_1/kilab_async_003_1
     map_start_at_dock: true
 
     debug_logging: false
