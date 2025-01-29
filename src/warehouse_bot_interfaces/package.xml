@@ -18,6 +18,10 @@
   <depend>action_msgs</depend>
   <member_of_group>rosidl_interface_packages</member_of_group>
 
+  <!--To make sure PoseStamped is accessible-->
+  <depend>geometry_msgs</depend>
+  <depend>rclpy</depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

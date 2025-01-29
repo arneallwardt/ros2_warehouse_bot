@@ -5,6 +5,14 @@ def generate_launch_description():
 
     return LaunchDescription([ 
 
+        # pose_optimizer
+        Node(
+            package='warehouse_bot_pilots',
+            executable='pose_optimizer',
+            name='pose_optimizer',
+            output='screen',
+        ),
+
         # product_aligner
         Node(
             package='warehouse_bot_pilots',

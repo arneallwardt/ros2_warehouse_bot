@@ -9,15 +9,21 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED) # for interfaces
 
+# add to use geometry_msgs/PoseStamped
+find_package(action_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
 set(msg_files
   "msg/ProductInfo.msg"
   "action/AlignProduct.action"
   "action/ManipulateProduct.action"
+  "action/OptimizePose.action"
 )
 
 # msg / srv go here
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
+  DEPENDENCIES geometry_msgs # add to use geometry_msgs/PoseStamped
 )
 
 ament_export_dependencies(rosidl_default_runtime)

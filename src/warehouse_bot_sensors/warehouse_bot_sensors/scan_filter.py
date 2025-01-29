@@ -2,10 +2,18 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from dotenv import load_dotenv
+import os
 
 class ScanFilter(Node):
     def __init__(self):
         super().__init__('scan_filter')
+
+        self.min_range_front = float(os.getenv('SCAN_MIN_RANGE_FRONT', 0.1))
+        self.min_range_back = float(os.getenv('SCAN_MIN_RANGE_BACK', 0.1))
+
+        self.scan_back_start = int(os.getenv('SCAN_BACk_START', 90))
+        self.scan_back_end = int(os.getenv('SCAN_BACk_END', 270))
 
         qos_profile_sub = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT, # needed to get infos from /scan
@@ -31,22 +39,29 @@ class ScanFilter(Node):
         self.publisher = self.create_publisher(LaserScan, '/scan_filtered', qos_profile_pub)
 
     def scan_callback(self, msg):
-        filtered_ranges = list(msg.ranges)
-        for i in range(80, 280): 
-            filtered_ranges[i] = float('inf')  # set to infinity -> no obstacle
+        # filter all ranges for min_range_front (smaller)
+        filtered_ranges = [
+            r if r > self.min_range_front else float('inf') for r in msg.ranges
+        ]
+
+        # filter higher values for scans in the back to prevent hitting the open manipulator
+        for i in range(self.scan_back_start, self.scan_back_end): 
+            if filtered_ranges[i] < self.min_range_back:
+                filtered_ranges[i] = float('inf')
 
         msg.ranges = filtered_ranges
         self.publisher.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ScanFilter()
+    load_dotenv()
+    scan_filter = ScanFilter()
     try:
-        rclpy.spin(node)
+        rclpy.spin(scan_filter)
     except KeyboardInterrupt:
         pass
     finally:
-        node.destroy_node()
+        scan_filter.destroy_node()
         rclpy.shutdown()
 
 if __name__ == '__main__':

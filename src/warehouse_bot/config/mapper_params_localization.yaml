@@ -17,15 +17,14 @@ slam_toolbox:
     #use_map_saver: true
     mode: localization
 
-    # map_file_name: /home/kilab/ros2_warehouse_bot/maps/001_async/kilab_001_async
-    map_file_name: /home/kilab/ros2_warehouse_bot/maps/old/kilab_lab
+    map_file_name: /home/kilab/ros2_warehouse_bot/maps/kilab_async_003_1/kilab_async_003_1
     map_start_at_dock: true
 
     debug_logging: false
     throttle_scans: 1
     transform_publish_period: 0.02 #if 0 never publishes odometry
     map_update_interval: 5.0
-    resolution: 0.05 # CHANGE (0.05)
+    resolution: 0.03 # CHANGE (0.05)
     max_laser_range: 20.0 #for rastering images
     minimum_time_interval: 0.5
     transform_timeout: 0.2

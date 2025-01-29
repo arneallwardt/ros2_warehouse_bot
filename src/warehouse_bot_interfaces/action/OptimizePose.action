@@ -1,0 +1,9 @@
+geometry_msgs/PoseStamped goal_pose
+float64 xy_goal_tolerance
+float64 yaw_goal_tolerance
+---
+bool success
+---
+geometry_msgs/PoseStamped current_pose
+float64 current_xy_error
+float64 current_yaw_error
