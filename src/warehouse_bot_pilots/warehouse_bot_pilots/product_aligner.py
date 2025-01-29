@@ -173,7 +173,6 @@ class ProductAligner(Node):
 
         if not msg.product_in_frame:
             self.PRODUCT_NOT_SEEN_COUNT -= 1
-            self.get_logger().info(f"product not seen count: {self.PRODUCT_NOT_SEEN_COUNT}")
             if self.PRODUCT_NOT_SEEN_COUNT <= 0:
                 self.CAN_CANCEL_ACTION = True
         else:

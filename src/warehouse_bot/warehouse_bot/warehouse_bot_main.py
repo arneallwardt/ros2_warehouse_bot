@@ -59,43 +59,43 @@ class WarehouseBotMain(Node):
             'grabbing_product',
             'putting_down_product',
             'error',
-            'universal'
         ]
-        self.machine = Machine(model=self, states=states, initial='universal')
+        self.machine = Machine(model=self, states=states, initial='idle')
 
         # state transitions
         self.machine.add_transition(
             trigger='start_idle', 
-            source=['putting_down_product', 'universal', 'navigating'], 
-            dest='idle') 
+            source=['putting_down_product', 'navigating'], 
+            dest='idle',
+            after=self.idle) 
         
         self.machine.add_transition(
             trigger='start_navigation', 
-            source=['idle', 'optimizing_pose', 'aligning_with_product', 'grabbing_product', 'universal'], 
+            source=['idle', 'moving_back', 'aligning_with_product'], 
             dest='navigating',
             after=self.navigate_to_next_pose)
         
         self.machine.add_transition(
             trigger='start_moving_back', 
-            source=['grabbing_product', 'universal'],
+            source=['grabbing_product'],
             dest='moving_back',
             after=self.call_move_back_server)
         
         self.machine.add_transition(
             trigger='start_aligning_with_product', 
-            source=['navigating', 'universal'], 
+            source=['navigating'], 
             dest='aligning_with_product',
             after=self.call_product_aligner)
         
         self.machine.add_transition(
             trigger='start_grabbing_product', 
-            source=['aligning_with_product', 'universal'], 
+            source=['aligning_with_product'], 
             dest='grabbing_product',
             after=self.call_product_manipulator)
         
         self.machine.add_transition(
             trigger='start_putting_down_product', 
-            source=['navigating' , 'universal'], 
+            source=['navigating'], 
             dest='putting_down_product',
             after=self.call_product_manipulator)
         
@@ -104,11 +104,7 @@ class WarehouseBotMain(Node):
             source='*', 
             dest='error',
             after=lambda: self.get_logger().error('Bot entered error state.'))
-            
-        self.machine.add_transition(
-            trigger='start_universal', 
-            source='*', 
-            dest='universal') 
+    
         
 
     ### ACTION SERVER CALLS ###    
@@ -400,10 +396,13 @@ class WarehouseBotMain(Node):
             self.get_logger().info(f'time_remaining: {feedback.time_remaining}')
 
 
-    ### Error
+    ### Basic states
 
     def log_error(self):
-        self.get_logger().error('Error state')
+        self.get_logger().error('Bot has entered error state.')
+
+    def idle(self):
+        self.get_logger().info('Bot has entered idle state.')
 
 
 def main(args=None):

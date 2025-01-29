@@ -44,7 +44,7 @@ class MoveBackServer(Node):
             time.sleep(goal_handle.request.duration)
 
             stop_msg = Twist()
-            stop_msg.linear.x = 0
+            stop_msg.linear.x = 0.0
             self._cmd_vel_publisher.publish(stop_msg)
 
             success = True
