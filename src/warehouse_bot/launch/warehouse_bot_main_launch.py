@@ -10,7 +10,7 @@ def generate_launch_description():
     navigation_launch_file = os.path.join(
         get_package_share_directory('warehouse_bot'),
         'launch',
-        'warehouse_bot_navigation_launch.py'
+        'navigation_launch.py'
     )
 
     # localization

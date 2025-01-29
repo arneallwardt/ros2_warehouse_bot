@@ -118,7 +118,8 @@ class WarehouseBotMain(Node):
         
         # self.get_logger().info(f'calling pose_optimizer in current state: {self.state}')
         # self.send_optimize_pose_goal()
-        self.start_aligning_with_product()
+        # self.start_aligning_with_product()
+        self.start_navigation()
     
 
     ### align_with_product
@@ -150,7 +151,7 @@ class WarehouseBotMain(Node):
 
     def navigate_to_next_pose(self):
         self.get_logger().info('Navigating to next pose')
-        pose = self.get_current_goal_pose(increment=False) # only increment after optimizing pose
+        pose = self.get_current_goal_pose(increment=True) # only increment after optimizing pose
         self.send_navigate_to_pose_goal(pose)
 
 

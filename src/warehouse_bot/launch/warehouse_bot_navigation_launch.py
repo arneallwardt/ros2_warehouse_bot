@@ -8,7 +8,7 @@ def generate_launch_description():
 
     # nav2
     nav2_launch_file = os.path.join(
-        get_package_share_directory('nav2_bringup'),
+        get_package_share_directory('warehouse_bot'),
         'launch',
         'navigation_launch.py'
     )
