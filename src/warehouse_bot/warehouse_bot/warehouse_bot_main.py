@@ -5,7 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 import time
 from transitions import Machine
-from warehouse_bot_interfaces.action import AlignProduct, ManipulateProduct, OptimizePose 
+from warehouse_bot_interfaces.action import AlignProduct, ManipulateProduct, MoveBack 
 from open_manipulator_msgs.srv import SetJointPosition
 import os
 from dotenv import load_dotenv
@@ -16,11 +16,13 @@ class WarehouseBotMain(Node):
         self._navigate_to_pose_action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._align_product_action_client = ActionClient(self, AlignProduct, 'align_product')
         self._manipulate_product_action_client = ActionClient(self, ManipulateProduct, 'manipulate_product')
-        self._optimize_pose_action_client = ActionClient(self, OptimizePose, 'optimize_pose')
+        self._move_back_action_client = ActionClient(self, MoveBack, 'move_back')
 
         self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
         # pose information
-        self.current_goal_pose = 0
+        self.current_goal_pose_idx = 0
+        self.is_holding_product = False
+
         self.goal_poses = [
             {
                 'x': float(os.getenv('GOAL_1_X', 0.0)), 
@@ -52,7 +54,7 @@ class WarehouseBotMain(Node):
         states = [
             'idle',
             'navigating',
-            'optimizing_pose',
+            'moving_back',
             'aligning_with_product',
             'grabbing_product',
             'putting_down_product',
@@ -64,7 +66,7 @@ class WarehouseBotMain(Node):
         # state transitions
         self.machine.add_transition(
             trigger='start_idle', 
-            source=['putting_down_product', 'universal', 'aligning_with_product'], 
+            source=['putting_down_product', 'universal', 'navigating'], 
             dest='idle') 
         
         self.machine.add_transition(
@@ -74,14 +76,14 @@ class WarehouseBotMain(Node):
             after=self.navigate_to_next_pose)
         
         self.machine.add_transition(
-            trigger='start_optimizing_pose', 
-            source=['navigating', 'aligning_with_product', 'grabbing_product', 'universal'],
-            dest='optimizing_pose',
-            after=self.call_pose_optimizer)
+            trigger='start_moving_back', 
+            source=['grabbing_product', 'universal'],
+            dest='moving_back',
+            after=self.call_move_back_server)
         
         self.machine.add_transition(
             trigger='start_aligning_with_product', 
-            source=['optimizing_pose', 'universal'], 
+            source=['navigating', 'universal'], 
             dest='aligning_with_product',
             after=self.call_product_aligner)
         
@@ -111,15 +113,13 @@ class WarehouseBotMain(Node):
 
     ### ACTION SERVER CALLS ###    
     
-    def call_pose_optimizer(self):
-        # if self.state != 'optimizing_pose':
-        #     self.get_logger().info(f"warehouse_bot_main: wrong state for call_pose_optimizer(). Current state: {self.state}")
-        #     return
+    def call_move_back_server(self):
+        if self.state != 'moving_back':
+            self.get_logger().info(f"warehouse_bot_main: wrong state for call_move_back_server(). Current state: {self.state}")
+            return
         
-        # self.get_logger().info(f'calling pose_optimizer in current state: {self.state}')
-        # self.send_optimize_pose_goal()
-        # self.start_aligning_with_product()
-        self.start_navigation()
+        self.get_logger().info(f'calling call_move_back_server in current state: {self.state}')
+        self.send_move_back_goal()
     
 
     ### align_with_product
@@ -140,9 +140,9 @@ class WarehouseBotMain(Node):
             task = 'release'
         else:
             self.get_logger().info(f"warehouse_bot_main: wrong state for call_product_gripper(). Current state: {self.state}")
-            return 
+            self.error() 
         
-        self.get_logger().info(f'calling call_product_gripper in current state: {self.state}')
+        self.get_logger().info(f'calling call_product_gripper in current state: {self.state}; task: {task}')
         self.send_manipulate_product_goal(task)
 
 
@@ -151,15 +151,19 @@ class WarehouseBotMain(Node):
 
     def navigate_to_next_pose(self):
         self.get_logger().info('Navigating to next pose')
-        pose = self.get_current_goal_pose(increment=True) # only increment after optimizing pose
+        pose = self.get_current_goal_pose(increment=True)
         self.send_navigate_to_pose_goal(pose)
 
 
     def get_current_goal_pose(self, increment):
 
-        if self.current_goal_pose >= len(self.goal_poses):
+        if self.current_goal_pose_idx >= len(self.goal_poses):
             self.get_logger().info('No more poses to visit')
             self.start_idle()
+
+        # if bot is holding product, navigate to last possible pose which is final pose where product should be layed down
+        if self.is_holding_product:
+            self.current_goal_pose_idx = len(self.goal_poses)-1
 
         # Erstelle eine Zielposition
         pose = PoseStamped()
@@ -167,12 +171,13 @@ class WarehouseBotMain(Node):
         pose.header.frame_id = 'map'  
         pose.header.stamp = self.get_clock().now().to_msg()
 
-        pose.pose.position.x = self.goal_poses[self.current_goal_pose]['x']  
-        pose.pose.position.y = self.goal_poses[self.current_goal_pose]['y']  
-        pose.pose.orientation.z = self.goal_poses[self.current_goal_pose]['z']  # TODO: drop z since it is essentially not used
-        pose.pose.orientation.w = self.goal_poses[self.current_goal_pose]['w']  
+        pose.pose.position.x = self.goal_poses[self.current_goal_pose_idx]['x']  
+        pose.pose.position.y = self.goal_poses[self.current_goal_pose_idx]['y']  
+        pose.pose.orientation.z = self.goal_poses[self.current_goal_pose_idx]['z']  # TODO: drop z since it is essentially not used
+        pose.pose.orientation.w = self.goal_poses[self.current_goal_pose_idx]['w']  
+        
         if increment:
-            self.current_goal_pose += 1
+            self.current_goal_pose_idx += 1
 
         return pose
 
@@ -211,7 +216,11 @@ class WarehouseBotMain(Node):
         result = future.result().result
         if result is not None:
             self.get_logger().info('Bot has reached the goal pose!')
-            self.start_optimizing_pose()
+
+            if self.is_holding_product:
+                self.start_putting_down_product()
+            else:
+                self.start_aligning_with_product()
 
         else:
             self.get_logger().error('Error while traveling to the goal pose.')
@@ -222,60 +231,6 @@ class WarehouseBotMain(Node):
         # Ausgabe von Feedback während der Navigation
         if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
             self.get_logger().info(f'Current pose feedback: {feedback_msg.feedback.current_pose.pose}')
-
-
-    ### OPTIMIZE POSE ACTION
-
-    def send_optimize_pose_goal(self):
-        goal_msg = OptimizePose.Goal()
-        
-        goal_msg.goal_pose = self.get_current_goal_pose(increment=True)
-        goal_msg.xy_goal_tolerance = float(os.getenv('XY_GOAL_POSE_TOLERANCE', 0.1))
-        goal_msg.yaw_goal_tolerance = float(os.getenv('YAW_GOAL_POSE_TOLERANCE', 0.1))
-
-        self._optimize_pose_action_client.wait_for_server()
-
-        self.optimize_pose_send_goal_future = self._optimize_pose_action_client.send_goal_async(goal_msg, feedback_callback=self.optimize_pose_feedback_callback)
-
-        self.optimize_pose_send_goal_future.add_done_callback(self.optimize_pose_goal_response_callback) 
-
-    
-    def optimize_pose_goal_response_callback(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self.get_logger().info('OptimizePose Goal rejected :(')
-            return
-
-        self.get_logger().info('OptimizePose Goal accepted!')
-
-        self._get_result_future = goal_handle.get_result_async()
-        self._get_result_future.add_done_callback(self.optimize_pose_result_callback)
-
-
-    def optimize_pose_result_callback(self, future):
-        result = future.result().result
-
-        if result is not None:
-            self.get_logger().info('####### OPTIMIZE POSE RESULT #########')
-            
-            if result.success:
-                self.get_logger().info('####### SUCCESS #########')
-            else: 
-                self.get_logger().info('####### ERROR #########')
-
-        else:
-            self.get_logger().error('Empty manipulate_product action result')
-            self.error()
-
-    
-    def optimize_pose_feedback_callback(self, feedback_msg):
-        feedback = feedback_msg.feedback
-
-        if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
-            self.get_logger().info('####### OPTIMIZE POSE FEEDBACK #########')
-            self.get_logger().info(f'current xy_error: {feedback.current_xy_error}')
-            self.get_logger().info(f'current yaw_error: {feedback.current_yaw_error}')
-            self.get_logger().info(f'current yaw_error: {feedback.current_pose.pose}')
 
 
 
@@ -371,7 +326,12 @@ class WarehouseBotMain(Node):
         if result is not None:
             self.get_logger().info('####### MANIPULATE PRODUCT RESULT #########')
             self.get_logger().info(f'holding product: {result.is_holding_product}')
-            # self.start_idle()
+            self.is_holding_product = result.is_holding_product
+
+            if result.is_holding_product:
+                self.start_moving_back()
+            else:
+                self.start_idle()
 
         else:
             self.get_logger().error('Empty manipulate_product action result')
@@ -384,6 +344,60 @@ class WarehouseBotMain(Node):
         if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
             self.get_logger().info('####### MANIPULATE PRODUCT FEEDBACK #########')
             self.get_logger().info(f'holding product: {feedback.is_holding_product}')
+
+    
+
+    ### MOVE BACK ACTION
+
+    def send_move_back_goal(self):
+        goal_msg = MoveBack.Goal()
+        
+        goal_msg.speed = float(os.getenv('MOVE_BACK_SPEED', 0.2))
+        goal_msg.duration = float(os.getenv('MOVE_BACK_DURATION', 2))
+
+        self._move_back_action_client.wait_for_server()
+
+        self.move_back_send_goal_future = self._move_back_action_client.send_goal_async(goal_msg, feedback_callback=self.move_back_feedback_callback)
+
+        self.move_back_send_goal_future.add_done_callback(self.move_back_goal_response_callback) 
+
+    
+    def move_back_goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('MoveBack Goal rejected :(')
+            return
+
+        self.get_logger().info('MoveBack Goal accepted!')
+
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(self.move_back_result_callback)
+
+
+    def move_back_result_callback(self, future):
+        result = future.result().result
+
+        if result is not None:
+            self.get_logger().info('####### MOVE BACK RESULT #########')
+            
+            if result.success:
+                self.get_logger().info('####### SUCCESS #########')
+                self.start_navigation()
+            else: 
+                self.get_logger().info('####### ERROR #########')
+                self.send_move_back_goal()
+
+        else:
+            self.get_logger().error('Empty manipulate_product action result')
+            self.error()
+
+    
+    def move_back_feedback_callback(self, feedback_msg):
+        feedback = feedback_msg.feedback
+
+        if os.getenv('LOG_ACTION_FEEDBACK', False) == "True":
+            self.get_logger().info('####### MOVE BACK FEEDBACK #########')
+            self.get_logger().info(f'time_remaining: {feedback.time_remaining}')
 
 
     ### Error
@@ -400,8 +414,6 @@ def main(args=None):
 
     warehouse_bot_main = WarehouseBotMain()
     warehouse_bot_main.start_navigation()    
-    # warehouse_bot_main.start_optimizing_pose()
-    # warehouse_bot_main.start_aligning_with_product()
     
     rclpy.spin(warehouse_bot_main)
 

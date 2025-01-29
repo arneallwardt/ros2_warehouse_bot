@@ -25,7 +25,7 @@ setup(
         'console_scripts': [
             'product_aligner = warehouse_bot_pilots.product_aligner:main',
             'product_manipulator = warehouse_bot_pilots.product_manipulator:main',
-            'pose_optimizer = warehouse_bot_pilots.pose_optimizer:main',
+            # 'pose_optimizer = warehouse_bot_pilots.pose_optimizer:main',
         ],
     },
 )

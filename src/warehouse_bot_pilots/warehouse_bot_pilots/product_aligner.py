@@ -22,12 +22,11 @@ class ProductAligner(Node):
         self.current_product_center_offset = 0.0
         self.is_product_in_frame = False
         self.FEEDBACK_ITERATIONS = 100
-        self.PRODUCT_NOT_SEEN_COUNT_BASE = 100
+        self.PRODUCT_NOT_SEEN_COUNT_BASE = 20
         self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
         self.CAN_CANCEL_ACTION = False
         self.turn_direction_angular_z = 0.0
         self.turn_direction_linear_x = 0.0
-        self.goal_handle = None
 
         self.callback_group = ReentrantCallbackGroup()
 
@@ -53,18 +52,16 @@ class ProductAligner(Node):
 
     def align_product_callback(self, goal_handle):
         self.get_logger().info('def align_product_callback')
-        self.goal_handle = goal_handle
-        self.PRODUCT_NOT_SEEN_COUNT = self.PRODUCT_NOT_SEEN_COUNT_BASE
+        self.reset_state()
 
         success = self.align_with_product(goal_handle)
             
+        goal_handle.succeed()
         result = AlignProduct.Result()
 
         result.product_diameter = self.current_product_diameter
         result.product_center_offset = self.current_product_center_offset
         result.success = success
-
-        self.reset_state()
 
         return result
 
@@ -174,7 +171,7 @@ class ProductAligner(Node):
         self.current_product_center_offset = msg.product_center_offset
         self.is_product_in_frame = msg.product_in_frame
 
-        if not msg.product_in_frame and self.goal_handle:
+        if not msg.product_in_frame:
             self.PRODUCT_NOT_SEEN_COUNT -= 1
             self.get_logger().info(f"product not seen count: {self.PRODUCT_NOT_SEEN_COUNT}")
             if self.PRODUCT_NOT_SEEN_COUNT <= 0:
