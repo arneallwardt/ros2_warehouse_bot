@@ -50,6 +50,12 @@ class WarehouseBotMain(Node):
             },
         ]
 
+        for pose in self.goal_poses:
+            self.get_logger().info(f'x: {pose["x"]}')
+            self.get_logger().info(f'y: {pose["y"]}')
+            self.get_logger().info(f'z: {pose["z"]}')
+            self.get_logger().info(f'w: {pose["w"]}')
+
         # state machine implementation
         states = [
             'idle',
@@ -146,12 +152,13 @@ class WarehouseBotMain(Node):
     ### NAVIGATE ACTION
 
     def navigate_to_next_pose(self):
-        self.get_logger().info('Navigating to next pose')
-        pose = self.get_current_goal_pose(increment=True)
+        self.get_logger().info(f'Navigating to next pose. current pose index: {self.current_goal_pose_idx}')
+        pose = self.get_current_goal_pose()
+        self.get_logger().info(f'Retrieved next goal pose. current pose index: {self.current_goal_pose_idx}')        
         self.send_navigate_to_pose_goal(pose)
 
 
-    def get_current_goal_pose(self, increment):
+    def get_current_goal_pose(self):
 
         if self.current_goal_pose_idx >= len(self.goal_poses):
             self.get_logger().info('No more poses to visit')
@@ -159,6 +166,7 @@ class WarehouseBotMain(Node):
 
         # if bot is holding product, navigate to last possible pose which is final pose where product should be layed down
         if self.is_holding_product:
+            self.get_logger().info('Holding product. Navigating back to start pose.')
             self.current_goal_pose_idx = len(self.goal_poses)-1
 
         # Erstelle eine Zielposition
@@ -172,8 +180,7 @@ class WarehouseBotMain(Node):
         pose.pose.orientation.z = self.goal_poses[self.current_goal_pose_idx]['z']  # TODO: drop z since it is essentially not used
         pose.pose.orientation.w = self.goal_poses[self.current_goal_pose_idx]['w']  
         
-        if increment:
-            self.current_goal_pose_idx += 1
+        self.current_goal_pose_idx += 1
 
         return pose
 
