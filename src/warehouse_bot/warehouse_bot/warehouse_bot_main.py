@@ -154,7 +154,11 @@ class WarehouseBotMain(Node):
     def navigate_to_next_pose(self):
         self.get_logger().info(f'Navigating to next pose. current pose index: {self.current_goal_pose_idx}')
         pose = self.get_current_goal_pose()
-        self.get_logger().info(f'Retrieved next goal pose. current pose index: {self.current_goal_pose_idx}')        
+        self.get_logger().info(f'Retrieved next goal pose. current pose index: {self.current_goal_pose_idx}')  
+        self.get_logger().info(f'pose.pose.position.x: {pose.pose.position.x}')
+        self.get_logger().info(f'pose.pose.position.y: {pose.pose.position.y}')
+        self.get_logger().info(f'pose.pose.position.z: {pose.pose.orientation.z}')
+        self.get_logger().info(f'pose.pose.position.w: {pose.pose.orientation.w}')      
         self.send_navigate_to_pose_goal(pose)
 
 

@@ -17,7 +17,7 @@ slam_toolbox:
     #use_map_saver: true
     mode: localization
 
-    map_file_name: /home/kilab/ros2_warehouse_bot/maps/kilab_async_003_1/kilab_async_003_1
+    map_file_name: /home/kilab/ros2_warehouse_bot/maps/kilab_async_002_lds_new/kilab_async_002
     map_start_at_dock: true
 
     debug_logging: false
@@ -35,7 +35,7 @@ slam_toolbox:
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    minimum_travel_distance: 0.5
+    minimum_travel_distance:  0.2 # Change (0.5)
     minimum_travel_heading: 0.5
     scan_buffer_size: 10
     scan_buffer_maximum_scan_distance: 10.0
