@@ -124,13 +124,13 @@ controller_server:
     # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
+      required_movement_radius: 0.1 # CHANGE (0.5)
       movement_time_allowance: 10.0
     # Goal checker parameters
     precise_goal_checker:
      plugin: "nav2_controller::SimpleGoalChecker"
-     xy_goal_tolerance: 0.25
-     yaw_goal_tolerance: 0.10
+     xy_goal_tolerance: 0.25 # CHANGE (0.25)
+     yaw_goal_tolerance: 0.10 # CHANGE (0.25)
      stateful: True
     # general_goal_checker:
     #   stateful: True
@@ -191,13 +191,13 @@ local_costmap:
       rolling_window: true
       width: 3
       height: 3
-      resolution: 0.05 # CHANGE (0.05)
+      resolution: 0.02 # CHANGE (0.05)
       robot_radius: 0.22
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.35 # CHANGE (0.55)
+        inflation_radius: 0.3 # CHANGE (0.55)
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -232,7 +232,7 @@ global_costmap:
       robot_base_frame: base_link
       use_sim_time: True
       robot_radius: 0.22
-      resolution: 0.05 # CHANGE (0.05)
+      resolution: 0.02 # CHANGE (0.05)
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
@@ -255,7 +255,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.35 # CHANGE (0.55)
+        inflation_radius: 0.3 # CHANGE (0.55)
       always_send_full_costmap: True
 
 map_server:
@@ -281,8 +281,16 @@ planner_server:
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
-      use_astar: false
+      use_astar: true
       allow_unknown: true
+    # planner_plugins: ["ThetaStar"]
+    # ThetaStar:
+    #   plugin: "nav2_theta_star_planner/ThetaStarPlanner"
+    #   how_many_corners: 8
+    #   w_euc_cost: 1.0
+    #   w_traversal_cost: 2.0
+    #   w_heuristic_cost: 1.0
+    #   allow_unknown: true
 
 smoother_server:
   ros__parameters:
