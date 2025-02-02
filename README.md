@@ -1,81 +1,62 @@
-# Autonomous warehouse robot with ROS2
+# Autonomous  ROS2 warehouse robot
+This project involves the development of an autonomous warehouse robot using **TurtleBot3** and **OpenManipulator**, utilizing **ROS2** for _navigation_ and _manipulation_ tasks. The robot is equipped with mapping and localization functionalities via the `slam_toolbox` and `Nav2` packages, enabling efficient task execution in a warehouse environment. The system is capable of navigating to predefined waypoints, identifying products, and performing basic manipulation tasks, such as picking up and placing items.
 
-## Set Up
+## TurtleBot + VM setup
+This section covers setting up the Virtual Machine (VM) and the TurtleBot3, including installing the necessary ROS2 packages and Python libraries. The VM provides significantly more computational power compared to the Raspberry Pi on the TurtleBot, making it ideal for running the robot's software stack, such as SLAM, navigation, and manipulation tasks, which require more processing resources. By leveraging the VM for computation, the Raspberry Pi can focus on handling the robot's hardware and sensors, ensuring smoother performance and more reliable operations during development and testing.
 
-### General 
-
+### TurtleBot
 - [Install ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) (only for Ubuntu 22.04.)
-- Add Packages for TurtleBot3: `sudo apt install ros-humbe-turtlebot3*`
-- Install Gazebo: `sudo apt install ros-humble-gazebo-ros-pkgs`
-- Install nav2: `sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup`
-- Install colcon `sudo apt install python3-colcon-common-extensions`
-- Install twist_mux: `sudo apt install ros-humble-twist-mux`
-- Install slam_toolbox: `sudo apt install ros-humble-slam-toolbox`
-- Add xacro support: `sudo apt install ros-humble-xacro`
-- Install GUI for joint-state-publisher: `sudo apt install ros-humble-joint-state-publisher-gui`
+- **ROS2 packages:**
+  - Add Packages for TurtleBot3: `sudo apt install ros-humbe-turtlebot3*`
+  - Install colcon `sudo apt install python3-colcon-common-extensions`
+  - SetUp OpenManipulator: See Appendix [here](./paper.pdf)
+- **Python packages:**
+  - dotenv: `pip install python-dotenv`
+- **warehouse_bot packages**
+  - Clone this directory inside a new directory
+  - Build packages (from inside new directory): `colcon build`
+  - Source the underlying: `source <new_directory>/install/setup.bash`
 
-### OpenManipulator
-[Quick start guide](https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide/)
-- **remember to install open_manipulator_msgs also on host pc since it is required for turtlebot_main!**
+### VM
+- [Install ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) (only for Ubuntu 22.04.)
+- **ROS2 packages:**
+  - Install colcon `sudo apt install python3-colcon-common-extensions`
+  - Install nav2: `sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup`
+  - Install slam_toolbox: `sudo apt install ros-humble-slam-toolbox`
+  - Install Interfaces for OpenManipulator: `open_manipulator_msgs` (see above)
+- **Python packages:**
+  - dotenv: `pip install python-dotenv`
+  - transitions: `pip install transitions`
+- **warehouse_bot packages**
+  - Clone this directory inside a new directory
+  - Build packages (from inside new directory): `colcon build`
+  - Source the underlying: `source <new_directory>/install/setup.bash`
 
-### Package specific
+## Starting the bot
+- Ensure the testing environment is set up properly: (For use in KI-lab)
+  - 3 pillars (3 tires each) with balls (2 red, 1 blue) on correct positions
+  - TurtleBot in correct position
+  - OpenManipulator in correct position
+  - Lights turned on (except for the light at the blackboard)
+- **Start the Bot itself** (on TurtleBot): `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
+  - Everything worked if `[open_manipulator_controller] initialized successfully` is logged during startup and `image_provider successfully initialized` is the last message you see in the console
+  - Possible Error 1: `failed to open camera by index` -> restart
+  - Possible Error 2: `[open_manipulator_controller]: process has died` -> restart using this command: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
+- **Start navigation and everything else**: (on VM): `ros2 launch warehouse_bot warehouse_bot_main_launch.py` (this can take a few seconds)
+  - Everything worked if OpenManipulator has moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
+- **Start Operation**
+  - `begin_operation` service 
 
-- Check for updates in the package: `rosdep install -i --from-path src --rosdistro humble -y`
-- Build package (execute from inside the workspace): `colcon build —symlink-install`
-- Source the package: `source install/setup.bash`
+## Creating your own map 
+- On TurtleBot: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
+- On VM: `ros2 launch warehouse_bot warehouse_bot_mapping_launch`
+- On VM: `ros2 run turtlebot3_teleop teleop_keyboard`
 
-### Finding errors
-- run `ros2 doctor` to check for errors. If you get `All <n> checks passed` as a result, you're good to go.
-- run `ros2 doctor --report` to receive a full report
+Use the keyboard teleoperation to move the bot around to create a map. After that, you can save the map in rviz:
 
-## ROS2 packages
-
-- Nodes are definded in `src/<package_name>/<package_name>`
-
-### package.xml
-
-This file contains all the necessary information about a package. Including all the dependencies needed to build / test / run the code. Types of dependencies are the following:
-- **test_depend**: used in testing the code
-- ** build_depend**: used in building the code
-- **build_export_depend**: needed by headers in the code exports
-- **exec_depend**: only used when running the code
-- **depend**: for mixed purposes; covers build, export and execution time dependencies
-
-Every library which is imported inside a .py file, must be specified as a dependency in the `package.xml`!
-
-You can check if all dependencies are available and install them if required by running `rosdep install -i --from-path src --rosdistro <your_ros_distro> -y`
-
-### setup.py
-
-This file contains information about entry points and launch files. If you want to execute nodes / services with `ros2 run`, they need to be specified here either as `entry_points` (single nodes) or `data_files` (launch files).
-
-### Running a package
-- navigate to workspace directory
-- build packages: `colcon build`
-- source underlying: `source install/setup.bash`
-- run
-  - single node: `ros2 run <package_name> <node_name>` (NOTE: the `node_name` is specified in `setup.py` `entry_points`)
-  - launch file: `ros2 run <package_name> <launch_file>`
-
-## Using slam_toolbox and nav2
-- *sim_time:=true ONLY FOR GAZEBO*
-- you might want to build the `warehouse_bot` package first by executing `colcon build` in the packages root directory 
-- remember to execute `source /home/kilab/ros2_warehouse_bot/install/setup.bash` in every shell you open
-- set `map_file_name` in [mapper_params_localization.yaml](./src/warehouse_bot/config/mapper_params_localization.yaml) and to the path where your map files are. You can find them in `/maps/new` but you have to provide the rest of the absolute path starting with `/home`...
-
-### Mapping
-- start mapping (including twist_mux, scan_filter, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_mapping_launch.py`
-
-- **Saving Map**
-    - add slam_toolbox panel to rviz
-    - save → old format to use with external libs like nav2
-    - serialize → new format to use with slam_toolbox
-
-### Navigation (slam_toolbox and nav2)
-- start the bot itself (in bots shell; includes turtlebot3_bringup, scan_filter, image_provider): `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
-- start localization (includes twist_mux, slam_toolbox, rviz2): `ros2 launch warehouse_bot warehouse_bot_localization_launch.py`
-- start navigation: `ros2 launch warehouse_bot warehouse_bot_navigation_launch.py`
+- Go to Panels > Add New Panel > SlamToolboxPlugin
+- Save map as occupancy grid ("Save Map" button) aswell as posegraph ("Serialize" button)
+- To use map for navigation: Change `map_file_name` in [mapper_params_localization](./src/warehouse_bot/config/mapper_params_localization.yaml)
 
 ## Misc
-- start bot like this if lidar/openmanipulator ports are messed up: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
 - use this to reset turtlebot movement: `ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'`
