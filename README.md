@@ -7,8 +7,8 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
 ### TurtleBot
 - [Install ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) (only for Ubuntu 22.04.)
 - **ROS2 packages:**
-  - Add Packages for TurtleBot3: `sudo apt install ros-humbe-turtlebot3*`
-  - Install colcon `sudo apt install python3-colcon-common-extensions`
+  - Packages for TurtleBot3: `sudo apt install ros-humbe-turtlebot3*`
+  - colcon: `sudo apt install python3-colcon-common-extensions`
   - SetUp OpenManipulator: See Appendix [here](./paper.pdf)
 - **Python packages:**
   - dotenv: `pip install python-dotenv`
@@ -20,10 +20,11 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
 ### VM
 - [Install ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) (only for Ubuntu 22.04.)
 - **ROS2 packages:**
-  - Install colcon `sudo apt install python3-colcon-common-extensions`
-  - Install nav2: `sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup`
-  - Install slam_toolbox: `sudo apt install ros-humble-slam-toolbox`
-  - Install Interfaces for OpenManipulator: `open_manipulator_msgs` (see above)
+  - colcon `sudo apt install python3-colcon-common-extensions`
+  - rivz: `sudo apt install ros-humble-rviz2`
+  - nav2: `sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup`
+  - slam_toolbox: `sudo apt install ros-humble-slam-toolbox`
+  - Interfaces for OpenManipulator: `open_manipulator_msgs` (see above)
 - **Python packages:**
   - dotenv: `pip install python-dotenv`
   - transitions: `pip install transitions`
