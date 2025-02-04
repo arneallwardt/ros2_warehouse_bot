@@ -18,6 +18,7 @@ set(msg_files
   "action/AlignProduct.action"
   "action/ManipulateProduct.action"
   "action/MoveBack.action"
+  "srv/BeginOperation.srv"
 )
 
 # msg / srv go here

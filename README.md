@@ -13,7 +13,7 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
 - **Python packages:**
   - dotenv: `pip install python-dotenv`
 - **warehouse_bot packages**
-  - Clone this directory inside a new directory
+  - Clone this repository inside a new directory
   - Build packages (from inside new directory): `colcon build`
   - Source the underlying: `source <new_directory>/install/setup.bash`
 
@@ -29,7 +29,7 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
   - dotenv: `pip install python-dotenv`
   - transitions: `pip install transitions`
 - **warehouse_bot packages**
-  - Clone this directory inside a new directory
+  - Clone this repository inside a new directory
   - Build packages (from inside new directory): `colcon build`
   - Source the underlying: `source <new_directory>/install/setup.bash`
 
@@ -58,23 +58,28 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
 ---
 
 Ensure the testing environment is set up properly: (For usage in KI-lab)
-- TurtleBot and pillars in correct position _(Figure 1)_
+- TurtleBot (turned off) and pillars in correct position _(Figure 1)_
 - 3 pillars made out of 3 tires each with balls on top (2 red, 1 blue) _(Figure 2)_
 - OpenManipulator in correct position _(Figure 3)_
 - Lights turned on (except for the light at the blackboard)
 
 ### Operating
 
+**First steps**
+- Turn on the TurtleBot and connect to it via SSH (`wtb`)
+
 **Start the Bot itself** (on TurtleBot): `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
-- Everything worked if `[open_manipulator_controller] initialized successfully` is logged during startup and `image_provider successfully initialized` is the last message you see in the console
-- Possible Error 1: `failed to open camera by index` -> restart
-- Possible Error 2: `[open_manipulator_controller]: process has died` -> restart using this command: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
+- Everything worked if `[open_manipulator.open_manipulator_x_controller]: Succeeded to Initialise OpenManipulator-X Controller` is logged during startup and `[image_provider]: image_provider successfully initialized!` is the last message you see in the console
+- _Possible Error 1:_ `open VIDEOIO(V4L2:/dev/video0): can't open camera by index` -> restart
+- _Possible Error 2:_ `[ERROR] [open_manipulator_x_controller-4]: process has died` -> restart using this command: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
 
 **Start navigation and everything else**: (on VM): `ros2 launch warehouse_bot warehouse_bot_main_launch.py` (this can take a few seconds)
-- Everything worked if OpenManipulator has moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
+- Everything worked if the costmap has loaded successfully and the robot is displayed in rviz as seen in the figure below. If the robots position rviz is far off, you can use the "2D Pose Estimate" button to set the initial position. 
+- The OpenManipulator should have moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
 
-**Start Operation**
-- Start operation by using `begin_operation` service: `ros2 service call /begin_operation std_srvs/srv/Trigger "{}"`
+**Start Operation**: `ros2 service call /begin_operation warehouse_bot_interfaces/srv/BeginOperation "{use_anchor: false}"`
+- You can set `use_anchor: true` if you want to use poses in between. This _should_ make navigation more but seems to be causing problems since robot does not consistently position well in anchor state. Therefore it is not recommended to use. 
+- _Possible Error:_ Sometimes the TurtleBot will beep one time and stop during navigation. It is not clear why this error occurs. Try restarting the bot and change the battery if needed.
 
 ## Creating your own map 
 - On TurtleBot: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`

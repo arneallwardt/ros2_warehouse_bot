@@ -3,6 +3,7 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
+from launch_ros.actions import Node
 
 def generate_launch_description():
 
@@ -55,5 +56,13 @@ def generate_launch_description():
         # world view
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(warehouse_bot_world_launch_file)
+        ),
+
+        # main node
+        Node(
+            package='warehouse_bot',
+            executable='warehouse_bot_main',
+            name='warehouse_bot_main',
+            output='screen',
         ),
     ])

@@ -3,9 +3,9 @@ from rclpy.action import ActionClient
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
-import time
 from transitions import Machine
 from warehouse_bot_interfaces.action import AlignProduct, ManipulateProduct, MoveBack 
+from warehouse_bot_interfaces.srv import BeginOperation
 from open_manipulator_msgs.srv import SetJointPosition
 import os
 from dotenv import load_dotenv
@@ -20,61 +20,12 @@ class WarehouseBotMain(Node):
         self._move_back_action_client = ActionClient(self, MoveBack, 'move_back')
 
         self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
-        self._begin_operation_service = self.create_service(Trigger, 'begin_operation', self.begin_operation_callback)
+        self._begin_operation_service = self.create_service(BeginOperation, 'begin_operation', self.begin_operation_callback)
         # pose information
         self.next_goal_pose_idx = 0
         self.is_holding_product = False
 
-        self.goal_poses = [
-            {
-                'x': float(os.getenv('GOAL_1_X', 0.0)), 
-                'y': float(os.getenv('GOAL_1_Y', 0.0)), 
-                'z': float(os.getenv('GOAL_1_Z', 0.0)), 
-                'w': float(os.getenv('GOAL_1_W', 0.0)),
-                'anchor': False,
-            },
-            {
-                'x': float(os.getenv('ANCHOR_X', 0.0)), 
-                'y': float(os.getenv('ANCHOR_Y', 0.0)), 
-                'z': float(os.getenv('ANCHOR_Z', 0.0)), 
-                'w': float(os.getenv('ANCHOR_W', 0.0)),
-                'anchor': True,
-            },
-            {
-                'x': float(os.getenv('GOAL_2_X', 0.0)), 
-                'y': float(os.getenv('GOAL_2_Y', 0.0)), 
-                'z': float(os.getenv('GOAL_2_Z', 0.0)), 
-                'w': float(os.getenv('GOAL_2_W', 0.0)),
-                'anchor': False,
-            },
-            {
-                'x': float(os.getenv('ANCHOR_X', 0.0)), 
-                'y': float(os.getenv('ANCHOR_Y', 0.0)), 
-                'z': float(os.getenv('ANCHOR_Z', 0.0)), 
-                'w': float(os.getenv('ANCHOR_W', 0.0)),
-                'anchor': True
-            },
-            {
-                'x': float(os.getenv('GOAL_3_X', 0.0)), 
-                'y': float(os.getenv('GOAL_3_Y', 0.0)), 
-                'z': float(os.getenv('GOAL_3_Z', 0.0)),
-                'w': float(os.getenv('GOAL_3_W', 0.0)),
-                'anchor': False, 
-            },
-            {
-                'x': float(os.getenv('HOME_X', 0.0)), 
-                'y': float(os.getenv('HOME_Y', 0.0)), 
-                'z': float(os.getenv('HOME_Z', 0.0)), 
-                'w': float(os.getenv('HOME_W', 0.0)),
-                'anchor': False,
-            },
-        ]
-
-        for pose in self.goal_poses:
-            self.get_logger().info(f'x: {pose["x"]}')
-            self.get_logger().info(f'y: {pose["y"]}')
-            self.get_logger().info(f'z: {pose["z"]}')
-            self.get_logger().info(f'w: {pose["w"]}')
+        self.goal_poses = []
 
         # state machine implementation
         states = [
@@ -130,12 +81,13 @@ class WarehouseBotMain(Node):
             source='*', 
             dest='error',
             after=lambda: self.get_logger().error('Bot entered error state.'))
-    
+
         
     ### SERVICE CALLBACKS ###
 
     def begin_operation_callback(self, request, response):
         self.reset_state()
+        self.goal_poses = self.get_goal_poses(request.use_anchor)
 
         # start navigation later to ensure that response is returned before
         self.start_navigation()
@@ -143,6 +95,84 @@ class WarehouseBotMain(Node):
         response.success = True
         response.message = "Warehouse Bot is starting!"
         return response
+    
+    
+    def get_goal_poses(self, use_anchor):
+
+        pose_1 = {
+            'x': float(os.getenv('GOAL_1_X', 0.0)), 
+            'y': float(os.getenv('GOAL_1_Y', 0.0)), 
+            'z': float(os.getenv('GOAL_1_Z', 0.0)), 
+            'w': float(os.getenv('GOAL_1_W', 0.0)),
+            'anchor': False,
+        }
+
+        pose_2 = {
+            'x': float(os.getenv('GOAL_2_X', 0.0)), 
+            'y': float(os.getenv('GOAL_2_Y', 0.0)), 
+            'z': float(os.getenv('GOAL_2_Z', 0.0)), 
+            'w': float(os.getenv('GOAL_2_W', 0.0)),
+            'anchor': False,
+        }
+
+        pose_2_anchor = {
+            'x': float(os.getenv('GOAL_2_ANCHOR_X', 0.0)), 
+            'y': float(os.getenv('GOAL_2_ANCHOR_Y', 0.0)), 
+            'z': float(os.getenv('GOAL_2_ANCHOR_Z', 0.0)), 
+            'w': float(os.getenv('GOAL_2_ANCHOR_W', 0.0)),
+            'anchor': False,
+        }
+
+        pose_3 = {
+            'x': float(os.getenv('GOAL_3_X', 0.0)), 
+            'y': float(os.getenv('GOAL_3_Y', 0.0)), 
+            'z': float(os.getenv('GOAL_3_Z', 0.0)), 
+            'w': float(os.getenv('GOAL_3_W', 0.0)),
+            'anchor': False,
+        }
+
+        pose_3_anchor = {
+            'x': float(os.getenv('GOAL_3_ANCHOR_X', 0.0)), 
+            'y': float(os.getenv('GOAL_3_ANCHOR_Y', 0.0)), 
+            'z': float(os.getenv('GOAL_3_ANCHOR_Z', 0.0)),
+            'w': float(os.getenv('GOAL_3_ANCHOR_W', 0.0)),
+            'anchor': False, 
+        }
+
+        anchor_pose = {
+            'x': float(os.getenv('ANCHOR_X', 0.0)), 
+            'y': float(os.getenv('ANCHOR_Y', 0.0)), 
+            'z': float(os.getenv('ANCHOR_Z', 0.0)), 
+            'w': float(os.getenv('ANCHOR_W', 0.0)),
+            'anchor': True
+        }
+
+        home_pose = {
+            'x': float(os.getenv('HOME_X', 0.0)), 
+            'y': float(os.getenv('HOME_Y', 0.0)), 
+            'z': float(os.getenv('HOME_Z', 0.0)), 
+            'w': float(os.getenv('HOME_W', 0.0)),
+            'anchor': False,
+        }
+
+        if use_anchor:
+            self.get_logger().info('Using anchor poses for navigation.')
+            return [
+                pose_1,
+                anchor_pose,
+                pose_2_anchor,
+                anchor_pose,
+                pose_3_anchor,
+                home_pose
+            ]
+        else:
+            self.get_logger().info('Using plain poses for navigation')
+            return [
+                pose_1,
+                pose_2,
+                pose_3,
+                home_pose
+            ]
 
 
     ### ACTION SERVER CALLS ###    
@@ -200,6 +230,8 @@ class WarehouseBotMain(Node):
 
     def get_next_goal_pose(self):
 
+        self.get_logger().info(f'next goal pose idx: {self.next_goal_pose_idx}')
+
         if self.next_goal_pose_idx >= len(self.goal_poses):
             self.get_logger().info('No more poses to visit')
             self.start_idle()
@@ -217,7 +249,7 @@ class WarehouseBotMain(Node):
 
         pose.pose.position.x = self.goal_poses[self.next_goal_pose_idx]['x']  
         pose.pose.position.y = self.goal_poses[self.next_goal_pose_idx]['y']  
-        pose.pose.orientation.z = self.goal_poses[self.next_goal_pose_idx]['z']  # TODO: drop z since it is essentially not used
+        pose.pose.orientation.z = self.goal_poses[self.next_goal_pose_idx]['z']
         pose.pose.orientation.w = self.goal_poses[self.next_goal_pose_idx]['w']  
 
         self.next_goal_pose_idx += 1
@@ -226,6 +258,10 @@ class WarehouseBotMain(Node):
     
     def is_current_pose_anchor(self):
         return self.goal_poses[self.next_goal_pose_idx-1]['anchor']
+    
+    def is_current_pose_home_pose(self):
+        self.get_logger().info(f'##################next pose idx: {self.next_goal_pose_idx}, len goal poses: {len(self.goal_poses)}')
+        return self.next_goal_pose_idx >= len(self.goal_poses)
 
 
 
@@ -265,8 +301,13 @@ class WarehouseBotMain(Node):
 
             if self.is_holding_product:
                 self.start_putting_down_product()
+
             elif self.is_current_pose_anchor():
                 self.navigate_to_next_pose()
+            
+            elif self.is_current_pose_home_pose():
+                self.start_idle()
+            
             else:
                 self.start_aligning_with_product()
 
