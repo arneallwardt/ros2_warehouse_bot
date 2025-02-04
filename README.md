@@ -41,17 +41,17 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
   <div style="width: 33%;">
     <a id="environment-setup"></a>
     <img src="static/images/environment_set_up.jpeg" alt="Environment Setup">
-    <i>Environment Setup</i>
+    <i>[1] Environment Setup</i>
   </div>
   <div style="width: 33%;">
   <a id="pillar-construction"></a>
     <img src="static/images/pillar_construction.jpeg" alt="Pillar Construction">
-    <i>Pillar Construction (red = wrong, blue = correct)</i>
+    <i>[2] Pillar Construction (red = wrong, blue = correct)</i>
   </div>
   <div style="width: 33%;">
   <a id="bot-starting-position"></a>
     <img src="static/images/bot_starting_position.jpeg" alt="Bild 1">
-    <i>Bot starting postion</i>
+    <i>[3] Bot starting postion</i>
   </div>
 </div>
 
@@ -74,12 +74,25 @@ Ensure the testing environment is set up properly: (For usage in KI-lab)
 - _Possible Error 2:_ `[ERROR] [open_manipulator_x_controller-4]: process has died` -> restart using this command: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
 
 **Start navigation and everything else**: (on VM): `ros2 launch warehouse_bot warehouse_bot_main_launch.py` (this can take a few seconds)
-- Everything worked if the costmap has loaded successfully and the robot is displayed in rviz as seen in the figure below. If the robots position rviz is far off, you can use the "2D Pose Estimate" button to set the initial position. 
-- The OpenManipulator should have moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
+- Everything worked if the costmap has loaded successfully and the robot is displayed in rviz as seen in figure 4 below. If the robots position rviz is far off, you can use the "2D Pose Estimate" button to set the initial position. 
+- The OpenManipulator should have moved to its idle pose (figure 5). If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
+
+<div style="display: flex; justify-content: space-between;">
+  <div style="width: 48%;">
+    <a id="environment-setup"></a>
+    <img src="static/images/startup_complete.png" alt="Startup complete">
+    <i>[4] Windows after correct startup</i>
+  </div>
+  <div style="width: 48%;">
+  <a id="pillar-construction"></a>
+    <img src="static/images/open_manipulator_idle.jpeg" alt="OpenManipulator idle pose">
+    <i>[5] OpenManipulator idle pose</i>
+  </div>
+</div>
 
 **Start Operation**: `ros2 service call /begin_operation warehouse_bot_interfaces/srv/BeginOperation "{use_anchor: false}"`
 - You can set `use_anchor: true` if you want to use poses in between. This _should_ make navigation more but seems to be causing problems since robot does not consistently position well in anchor state. Therefore it is not recommended to use. 
-- _Possible Error:_ Sometimes the TurtleBot will beep one time and stop during navigation. It is not clear why this error occurs. Try restarting the bot and change the battery if needed.
+- _Possible Error:_ Sometimes the TurtleBot will beep one time and stop during navigation. This is probably due to low battery. Try changing the battery and restarting the bot. 
 
 ## Creating your own map 
 - On TurtleBot: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
