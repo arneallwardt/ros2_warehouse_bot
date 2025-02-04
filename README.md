@@ -46,7 +46,7 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
 - **Start navigation and everything else**: (on VM): `ros2 launch warehouse_bot warehouse_bot_main_launch.py` (this can take a few seconds)
   - Everything worked if OpenManipulator has moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
 - **Start Operation**
-  - `begin_operation` service 
+  - Start operation by using `begin_operation` service: `ros2 service call /begin_operation std_srvs/srv/Trigger "{}"`
 
 ## Creating your own map 
 - On TurtleBot: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`

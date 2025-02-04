@@ -9,6 +9,7 @@ from warehouse_bot_interfaces.action import AlignProduct, ManipulateProduct, Mov
 from open_manipulator_msgs.srv import SetJointPosition
 import os
 from dotenv import load_dotenv
+from std_srvs.srv import Trigger
 
 class WarehouseBotMain(Node):
     def __init__(self):
@@ -19,6 +20,7 @@ class WarehouseBotMain(Node):
         self._move_back_action_client = ActionClient(self, MoveBack, 'move_back')
 
         self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
+        self._begin_operation_service = self.create_service(Trigger, 'begin_operation', self.begin_operation_callback)
         # pose information
         self.next_goal_pose_idx = 0
         self.is_holding_product = False
@@ -91,7 +93,7 @@ class WarehouseBotMain(Node):
             trigger='start_idle', 
             source=['putting_down_product', 'navigating'], 
             dest='idle',
-            after=self.idle) 
+            after=self.enter_idle) 
         
         self.machine.add_transition(
             trigger='start_navigation', 
@@ -130,6 +132,18 @@ class WarehouseBotMain(Node):
             after=lambda: self.get_logger().error('Bot entered error state.'))
     
         
+    ### SERVICE CALLBACKS ###
+
+    def begin_operation_callback(self, request, response):
+        self.reset_state()
+
+        # start navigation later to ensure that response is returned before
+        self.start_navigation()
+
+        response.success = True
+        response.message = "Warehouse Bot is starting!"
+        return response
+
 
     ### ACTION SERVER CALLS ###    
     
@@ -170,6 +184,10 @@ class WarehouseBotMain(Node):
     ### NAVIGATE ACTION
 
     def navigate_to_next_pose(self):
+        if not self.state == 'navigating':
+            self.get_logger().error(f'Trying to trigger navigate_to_next_pose() from state {self.state}. Entering error state.')
+            self.error()
+
         self.get_logger().info(f'Navigating to next pose. current pose index: {self.next_goal_pose_idx}')
         pose = self.get_next_goal_pose()
         self.get_logger().info(f'Retrieved next goal pose. current pose index: {self.next_goal_pose_idx}')  
@@ -435,18 +453,19 @@ class WarehouseBotMain(Node):
     def log_error(self):
         self.get_logger().error('Bot has entered error state.')
 
-    def idle(self):
+    def enter_idle(self):
         self.get_logger().info('Bot has entered idle state.')
+
+    def reset_state(self):
+        self.next_goal_pose_idx = 0
+        self.is_holding_product = False
 
 
 def main(args=None):
     rclpy.init(args=args)
     load_dotenv()
 
-    time.sleep(1) # wait till other packages are ready
-
-    warehouse_bot_main = WarehouseBotMain()
-    warehouse_bot_main.start_navigation()    
+    warehouse_bot_main = WarehouseBotMain()   
     
     rclpy.spin(warehouse_bot_main)
 
