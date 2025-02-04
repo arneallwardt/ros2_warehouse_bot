@@ -63,7 +63,7 @@ Ensure the testing environment is set up properly: (For usage in KI-lab)
 - OpenManipulator in correct position _(Figure 3)_
 - Lights turned on (except for the light at the blackboard)
 
-### Launch files
+### Operating
 
 **Start the Bot itself** (on TurtleBot): `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
 - Everything worked if `[open_manipulator_controller] initialized successfully` is logged during startup and `image_provider successfully initialized` is the last message you see in the console
@@ -72,6 +72,7 @@ Ensure the testing environment is set up properly: (For usage in KI-lab)
 
 **Start navigation and everything else**: (on VM): `ros2 launch warehouse_bot warehouse_bot_main_launch.py` (this can take a few seconds)
 - Everything worked if OpenManipulator has moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
+
 **Start Operation**
 - Start operation by using `begin_operation` service: `ros2 service call /begin_operation std_srvs/srv/Trigger "{}"`
 
