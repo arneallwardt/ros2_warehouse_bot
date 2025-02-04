@@ -20,7 +20,7 @@ class WarehouseBotMain(Node):
 
         self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
         # pose information
-        self.current_goal_pose_idx = 0
+        self.next_goal_pose_idx = 0
         self.is_holding_product = False
 
         self.goal_poses = [
@@ -29,24 +29,42 @@ class WarehouseBotMain(Node):
                 'y': float(os.getenv('GOAL_1_Y', 0.0)), 
                 'z': float(os.getenv('GOAL_1_Z', 0.0)), 
                 'w': float(os.getenv('GOAL_1_W', 0.0)),
+                'anchor': False,
+            },
+            {
+                'x': float(os.getenv('ANCHOR_X', 0.0)), 
+                'y': float(os.getenv('ANCHOR_Y', 0.0)), 
+                'z': float(os.getenv('ANCHOR_Z', 0.0)), 
+                'w': float(os.getenv('ANCHOR_W', 0.0)),
+                'anchor': True,
             },
             {
                 'x': float(os.getenv('GOAL_2_X', 0.0)), 
                 'y': float(os.getenv('GOAL_2_Y', 0.0)), 
                 'z': float(os.getenv('GOAL_2_Z', 0.0)), 
                 'w': float(os.getenv('GOAL_2_W', 0.0)),
+                'anchor': False,
+            },
+            {
+                'x': float(os.getenv('ANCHOR_X', 0.0)), 
+                'y': float(os.getenv('ANCHOR_Y', 0.0)), 
+                'z': float(os.getenv('ANCHOR_Z', 0.0)), 
+                'w': float(os.getenv('ANCHOR_W', 0.0)),
+                'anchor': True
             },
             {
                 'x': float(os.getenv('GOAL_3_X', 0.0)), 
                 'y': float(os.getenv('GOAL_3_Y', 0.0)), 
                 'z': float(os.getenv('GOAL_3_Z', 0.0)),
                 'w': float(os.getenv('GOAL_3_W', 0.0)),
+                'anchor': False, 
             },
             {
                 'x': float(os.getenv('HOME_X', 0.0)), 
                 'y': float(os.getenv('HOME_Y', 0.0)), 
                 'z': float(os.getenv('HOME_Z', 0.0)), 
                 'w': float(os.getenv('HOME_W', 0.0)),
+                'anchor': False,
             },
         ]
 
@@ -152,9 +170,9 @@ class WarehouseBotMain(Node):
     ### NAVIGATE ACTION
 
     def navigate_to_next_pose(self):
-        self.get_logger().info(f'Navigating to next pose. current pose index: {self.current_goal_pose_idx}')
-        pose = self.get_current_goal_pose()
-        self.get_logger().info(f'Retrieved next goal pose. current pose index: {self.current_goal_pose_idx}')  
+        self.get_logger().info(f'Navigating to next pose. current pose index: {self.next_goal_pose_idx}')
+        pose = self.get_next_goal_pose()
+        self.get_logger().info(f'Retrieved next goal pose. current pose index: {self.next_goal_pose_idx}')  
         self.get_logger().info(f'pose.pose.position.x: {pose.pose.position.x}')
         self.get_logger().info(f'pose.pose.position.y: {pose.pose.position.y}')
         self.get_logger().info(f'pose.pose.position.z: {pose.pose.orientation.z}')
@@ -162,16 +180,16 @@ class WarehouseBotMain(Node):
         self.send_navigate_to_pose_goal(pose)
 
 
-    def get_current_goal_pose(self):
+    def get_next_goal_pose(self):
 
-        if self.current_goal_pose_idx >= len(self.goal_poses):
+        if self.next_goal_pose_idx >= len(self.goal_poses):
             self.get_logger().info('No more poses to visit')
             self.start_idle()
 
         # if bot is holding product, navigate to last possible pose which is final pose where product should be layed down
         if self.is_holding_product:
             self.get_logger().info('Holding product. Navigating back to start pose.')
-            self.current_goal_pose_idx = len(self.goal_poses)-1
+            self.next_goal_pose_idx = len(self.goal_poses)-1
 
         # Erstelle eine Zielposition
         pose = PoseStamped()
@@ -179,14 +197,17 @@ class WarehouseBotMain(Node):
         pose.header.frame_id = 'map'  
         pose.header.stamp = self.get_clock().now().to_msg()
 
-        pose.pose.position.x = self.goal_poses[self.current_goal_pose_idx]['x']  
-        pose.pose.position.y = self.goal_poses[self.current_goal_pose_idx]['y']  
-        pose.pose.orientation.z = self.goal_poses[self.current_goal_pose_idx]['z']  # TODO: drop z since it is essentially not used
-        pose.pose.orientation.w = self.goal_poses[self.current_goal_pose_idx]['w']  
-        
-        self.current_goal_pose_idx += 1
+        pose.pose.position.x = self.goal_poses[self.next_goal_pose_idx]['x']  
+        pose.pose.position.y = self.goal_poses[self.next_goal_pose_idx]['y']  
+        pose.pose.orientation.z = self.goal_poses[self.next_goal_pose_idx]['z']  # TODO: drop z since it is essentially not used
+        pose.pose.orientation.w = self.goal_poses[self.next_goal_pose_idx]['w']  
+
+        self.next_goal_pose_idx += 1
 
         return pose
+    
+    def is_current_pose_anchor(self):
+        return self.goal_poses[self.next_goal_pose_idx-1]['anchor']
 
 
 
@@ -226,6 +247,8 @@ class WarehouseBotMain(Node):
 
             if self.is_holding_product:
                 self.start_putting_down_product()
+            elif self.is_current_pose_anchor():
+                self.navigate_to_next_pose()
             else:
                 self.start_aligning_with_product()
 
