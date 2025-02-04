@@ -14,11 +14,11 @@ find_package(action_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 set(msg_files
+  "msg/BeginOperation.msg"
   "msg/ProductInfo.msg"
   "action/AlignProduct.action"
   "action/ManipulateProduct.action"
   "action/MoveBack.action"
-  "srv/BeginOperation.srv"
 )
 
 # msg / srv go here

@@ -90,7 +90,7 @@ Ensure the testing environment is set up properly: (For usage in KI-lab)
   </div>
 </div>
 
-**Start Operation**: `ros2 service call /begin_operation warehouse_bot_interfaces/srv/BeginOperation "{use_anchor: false}"`
+**Start Operation**: `ros2 topic pub --once /begin_operation warehouse_bot_interfaces/msg/BeginOperation "{use_anchor: false}" --qos-reliability reliable`
 - You can set `use_anchor: true` if you want to use poses in between. This _should_ make navigation more but seems to be causing problems since robot does not consistently position well in anchor state. Therefore it is not recommended to use. 
 - _Possible Error:_ Sometimes the TurtleBot will beep one time and stop during navigation. This is probably due to low battery. Try changing the battery and restarting the bot. 
 
