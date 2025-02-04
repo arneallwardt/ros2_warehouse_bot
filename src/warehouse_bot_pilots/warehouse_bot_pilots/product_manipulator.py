@@ -25,7 +25,6 @@ class ProductManipulator(Node):
         
         # state machine implementation
         states = [
-            'initial',
             'idle',
             'hover_over_product',
             'align_gripper_with_product',
@@ -114,6 +113,8 @@ class ProductManipulator(Node):
 
         if self.state == 'idle':
             joint_pos_label = 'IDLE'
+            if not self.is_holding_product:
+                self.adjust_gripper()
         elif self.state == 'hover_over_product':
             joint_pos_label = 'HOVER'
         elif self.state == 'align_gripper_with_product':

@@ -1,26 +1,38 @@
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from transitions import Machine
 from warehouse_bot_interfaces.action import AlignProduct, ManipulateProduct, MoveBack 
-from warehouse_bot_interfaces.srv import BeginOperation
+from warehouse_bot_interfaces.msg import BeginOperation
 from open_manipulator_msgs.srv import SetJointPosition
 import os
 from dotenv import load_dotenv
-from std_srvs.srv import Trigger
 
 class WarehouseBotMain(Node):
     def __init__(self):
         super().__init__('warehouse_bot_main')
+
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            depth=10
+        )
+        self._begin_operation_subscription = self.create_subscription(
+            BeginOperation,
+            'begin_operation',
+            self.begin_operation_callback,
+            qos_profile
+        )
+
         self._navigate_to_pose_action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._align_product_action_client = ActionClient(self, AlignProduct, 'align_product')
         self._manipulate_product_action_client = ActionClient(self, ManipulateProduct, 'manipulate_product')
         self._move_back_action_client = ActionClient(self, MoveBack, 'move_back')
 
         self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
-        self._begin_operation_service = self.create_service(BeginOperation, 'begin_operation', self.begin_operation_callback)
+        #self._begin_operation_service = self.create_service(BeginOperation, 'begin_operation', self.begin_operation_callback)
         # pose information
         self.next_goal_pose_idx = 0
         self.is_holding_product = False
@@ -83,18 +95,17 @@ class WarehouseBotMain(Node):
             after=lambda: self.get_logger().error('Bot entered error state.'))
 
         
-    ### SERVICE CALLBACKS ###
+    ### OPERATION CALLBACK ###
 
-    def begin_operation_callback(self, request, response):
+    def begin_operation_callback(self, msg):
+
+        if self.state != 'idle':
+            self.get_logger().error(f'Cannot start operation from state {self.state}!')
+
         self.reset_state()
-        self.goal_poses = self.get_goal_poses(request.use_anchor)
+        self.goal_poses = self.get_goal_poses(msg.use_anchor)
 
-        # start navigation later to ensure that response is returned before
         self.start_navigation()
-
-        response.success = True
-        response.message = "Warehouse Bot is starting!"
-        return response
     
     
     def get_goal_poses(self, use_anchor):
