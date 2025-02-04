@@ -34,19 +34,46 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
   - Source the underlying: `source <new_directory>/install/setup.bash`
 
 ## Starting the bot
-- Ensure the testing environment is set up properly: (For use in KI-lab)
-  - 3 pillars (3 tires each) with balls (2 red, 1 blue) on correct positions
-  - TurtleBot in correct position
-  - OpenManipulator in correct position
-  - Lights turned on (except for the light at the blackboard)
-- **Start the Bot itself** (on TurtleBot): `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
-  - Everything worked if `[open_manipulator_controller] initialized successfully` is logged during startup and `image_provider successfully initialized` is the last message you see in the console
-  - Possible Error 1: `failed to open camera by index` -> restart
-  - Possible Error 2: `[open_manipulator_controller]: process has died` -> restart using this command: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
-- **Start navigation and everything else**: (on VM): `ros2 launch warehouse_bot warehouse_bot_main_launch.py` (this can take a few seconds)
-  - Everything worked if OpenManipulator has moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
-- **Start Operation**
-  - Start operation by using `begin_operation` service: `ros2 service call /begin_operation std_srvs/srv/Trigger "{}"`
+
+### Environment 
+
+<div style="display: flex; justify-content: space-between;">
+  <div style="width: 33%;">
+    <a id="environment-setup"></a>
+    <img src="static/images/environment_set_up.jpeg" alt="Environment Setup">
+    <i>Environment Setup</i>
+  </div>
+  <div style="width: 33%;">
+  <a id="pillar-construction"></a>
+    <img src="static/images/pillar_construction.jpeg" alt="Pillar Construction">
+    <i>Pillar Construction (red = wrong, blue = correct)</i>
+  </div>
+  <div style="width: 33%;">
+  <a id="bot-starting-position"></a>
+    <img src="static/images/bot_starting_position.jpeg" alt="Bild 1">
+    <i>Bot starting postion</i>
+  </div>
+</div>
+
+---
+
+Ensure the testing environment is set up properly: (For usage in KI-lab)
+- TurtleBot and pillars in correct position _(Figure 1)_
+- 3 pillars made out of 3 tires each with balls on top (2 red, 1 blue) _(Figure 2)_
+- OpenManipulator in correct position _(Figure 3)_
+- Lights turned on (except for the light at the blackboard)
+
+### Launch files
+
+**Start the Bot itself** (on TurtleBot): `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
+- Everything worked if `[open_manipulator_controller] initialized successfully` is logged during startup and `image_provider successfully initialized` is the last message you see in the console
+- Possible Error 1: `failed to open camera by index` -> restart
+- Possible Error 2: `[open_manipulator_controller]: process has died` -> restart using this command: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py usb_port_open_manipulator:=/dev/ttyUSB0 usb_port_lds:=/dev/ttyUSB1`
+
+**Start navigation and everything else**: (on VM): `ros2 launch warehouse_bot warehouse_bot_main_launch.py` (this can take a few seconds)
+- Everything worked if OpenManipulator has moved to its idle pose. If not, restart this and the previous launch file and ensure `[open_manipulator_controller] initialized successfully` is logged during startup
+**Start Operation**
+- Start operation by using `begin_operation` service: `ros2 service call /begin_operation std_srvs/srv/Trigger "{}"`
 
 ## Creating your own map 
 - On TurtleBot: `ros2 launch warehouse_bot warehouse_bot_tb_launch.py`
