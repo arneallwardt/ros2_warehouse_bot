@@ -1,5 +1,6 @@
 string task
 ---
+bool success
 bool is_holding_product
 ---
 bool is_holding_product

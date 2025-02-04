@@ -5,6 +5,14 @@ def generate_launch_description():
 
     return LaunchDescription([ 
 
+        # move_back_server
+        Node(
+            package='warehouse_bot_pilots',
+            executable='move_back_server',
+            name='move_back_server',
+            output='screen',
+        ),
+
         # product_aligner
         Node(
             package='warehouse_bot_pilots',

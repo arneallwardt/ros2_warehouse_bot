@@ -3,6 +3,7 @@ float64 product_diameter_tolerance
 float64 product_center_offset
 float64 product_center_offset_tolerance
 ---
+bool success
 float64 product_diameter
 float64 product_center_offset
 ---

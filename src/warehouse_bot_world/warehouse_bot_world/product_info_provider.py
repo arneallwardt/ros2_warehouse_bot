@@ -30,7 +30,7 @@ class ProductInfoProvider(Node):
 
         self.bridge = CvBridge()
         self.colors = {
-            "blue": [173, 83, 0],
+            "blue": [76, 34, 7],
         }
         self.limits = self.get_limits()
 

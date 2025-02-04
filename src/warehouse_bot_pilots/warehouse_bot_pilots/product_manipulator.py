@@ -16,7 +16,6 @@ class ProductManipulator(Node):
         self.is_holding_product = False
         self._arm_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
         self._gripper_client = self.create_client(SetJointPosition, '/open_manipulator/goal_tool_control')
-        self.goal_handle = None
 
         self._action_server = ActionServer(
             self,
@@ -35,12 +34,12 @@ class ProductManipulator(Node):
             'release_product',
             'error'
         ]
-        self.machine = Machine(model=self, states=states, initial='initial')
+        self.machine = Machine(model=self, states=states, initial='idle')
 
         # state transitions
         self.machine.add_transition(
             trigger='start_idle', 
-            source=['initial', 'grip_product', 'release_product'], 
+            source=['idle', 'grip_product', 'release_product'], 
             dest='idle',
             after=self.move_arm_to_goal_pose
         ) 
@@ -77,8 +76,8 @@ class ProductManipulator(Node):
         self.machine.add_transition(
             trigger='error', 
             source='*', 
-            dest='error',
-            after=self.cancel_action())
+            dest='error'
+        )
     
 
         self.get_logger().info('product_manipulator initialized.')
@@ -107,7 +106,6 @@ class ProductManipulator(Node):
                 self.is_holding_product = False
 
             self.get_logger().info('Openmanipulator reached its goal pose.')
-            self.provide_feedback()
         else:
             self.get_logger().error('Error while moving openmanipulator to goal pose.')
 
@@ -162,61 +160,42 @@ class ProductManipulator(Node):
         
 
     def manipulate_product_callback(self, goal_handle):
-        self.get_logger().info('def grip_product_callback')
-        self.goal_handle = goal_handle
+        self.get_logger().info(f'def grip_product_callback. task: {goal_handle.request.task}')
 
-        # make sure to start in idle state
-        if not self.state == 'idle':
-            self.get_logger().info('Not in idle state, entering idle...')
-            self.start_idle()
+        try:
+            # make sure to start in idle state
+            if not self.state == 'idle':
+                self.get_logger().info('Not in idle state, entering idle...')
+                self.start_idle()
 
-        if goal_handle.request.task == 'grip':
-            self.get_logger().info('starting to grip product.')
-            self.start_hovering_over_product()
-            self.start_aligning_gripper_with_product()
-            self.start_gripping_product()
-            self.start_idle()
-            self.start_lowering_product()
-            self.start_releasing_product()
-            self.start_idle()
-        elif goal_handle.request.task == 'release':
-            pass
-        else:
-            self.get_logger().info('No valid task for product_manipulator. Aborting action...')
-            goal_handle.canceled()
-            self.reset_goal_handle()
-            return ManipulateProduct.Result()
+            if goal_handle.request.task == 'grip':
+                self.get_logger().info('starting to grip product.')
+                self.start_hovering_over_product()
+                self.start_aligning_gripper_with_product()
+                self.start_gripping_product()
+                self.start_idle()
+            elif goal_handle.request.task == 'release':
+                self.start_lowering_product()
+                self.start_releasing_product()
+                self.start_idle()
+                self.get_logger().info('starting to release product.')
+                
+            else:
+                self.get_logger().info('No valid task for product_manipulator. Aborting action...')
+                goal_handle.canceled()
+                return ManipulateProduct.Result()
+            
+            success = True
 
-        success = self.grip_product(goal_handle)
+        except Exception as e:
+            self.get_logger().error(f'product_manipulator failed. Error: {e}')
+            success = False
 
-        if success:
-            goal_handle.succeed()
-            result = ManipulateProduct.Result()
-            result.is_holding_product = self.is_holding_product
-            self.reset_goal_handle()
-            return result
-
-
-    def provide_feedback(self):
-        feedback = ManipulateProduct.Feedback()
-        feedback.is_holding_product = self.is_holding_product
-        
-        if self.goal_handle and self.goal_handle.is_active:
-            self.goal_handle.publish_feedback(feedback)
-
-
-    def cancel_action(self):
-        self.get_logger().info('An Error occured. Cancelling Action.')
-
-        if self.goal_handle and self.goal_handle.is_active:
-            self.goal_handle.canceled
-            self.reset_goal_handle()
-        
-        return ManipulateProduct.Result()
-         
-
-    def reset_goal_handle(self):
-        self.goal_handle = None
+        goal_handle.succeed()
+        result = ManipulateProduct.Result()
+        result.is_holding_product = self.is_holding_product
+        result.success = success
+        return result
 
 
 def main(args=None):

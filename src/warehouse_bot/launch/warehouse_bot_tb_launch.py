@@ -8,7 +8,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
 
     turtlebot_bringup_launch_file = os.path.join(
-        get_package_share_directory('turtlebot3_bringup'),
+        get_package_share_directory('warehouse_bot'),
         'launch',
         'robot.launch.py'
     )
@@ -31,9 +31,14 @@ def generate_launch_description():
             'usb_port_open_manipulator', default_value='/dev/ttyUSB1', description='USB port for open manipulator'
         ),
 
+        DeclareLaunchArgument(
+            'usb_port_lds', default_value='/dev/ttyUSB0', description='USB port for Lidar'
+        ),
+
         # turtlebot_bringup
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(turtlebot_bringup_launch_file)
+            PythonLaunchDescriptionSource(turtlebot_bringup_launch_file),
+            launch_arguments={'usb_port_lds': LaunchConfiguration('usb_port_lds')}.items()
         ),
 
         # open_manipulator_x_controller
