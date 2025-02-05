@@ -35,16 +35,6 @@ def generate_launch_description():
 
     return LaunchDescription([ 
 
-        # twist_mux
-        # Node(
-        #     package='twist_mux',
-        #     executable='twist_mux',
-        #     name='twist_mux',
-        #     output='screen',
-        #     parameters=[twist_mux_config],
-        #     remappings=[('cmd_vel_out', 'diff_cont/cmd_vel_unstamped')]
-        # ),
-
         # slam_toolbox
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(slam_toolbox_launch_file),

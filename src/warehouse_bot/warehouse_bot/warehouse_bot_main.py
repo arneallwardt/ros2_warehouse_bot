@@ -279,7 +279,7 @@ class WarehouseBotMain(Node):
         return self.goal_poses[self.next_goal_pose_idx-1]['anchor']
     
     def is_current_pose_home_pose(self):
-        self.get_logger().info(f'##################next pose idx: {self.next_goal_pose_idx}, len goal poses: {len(self.goal_poses)}')
+        self.get_logger().info(f'next pose idx: {self.next_goal_pose_idx}, len goal poses: {len(self.goal_poses)}')
         return self.next_goal_pose_idx >= len(self.goal_poses)
 
 

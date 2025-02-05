@@ -9,7 +9,7 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
 - **ROS2 packages:**
   - Packages for TurtleBot3: `sudo apt install ros-humbe-turtlebot3*`
   - colcon: `sudo apt install python3-colcon-common-extensions`
-  - SetUp OpenManipulator: See Appendix [here](./paper.pdf)
+  - SetUp OpenManipulator: See Appendix [here](./static/paper.pdf)
 - **Python packages:**
   - dotenv: `pip install python-dotenv`
 - **warehouse_bot packages**
