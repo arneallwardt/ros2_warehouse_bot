@@ -1,7 +1,6 @@
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from transitions import Machine
@@ -93,11 +92,12 @@ class WarehouseBotMain(Node):
 
         if self.can_start_operation and self.use_anchor is not None:
 
+            self.reset_state()
+            self.goal_poses = self.get_goal_poses(self.use_anchor)
+
             self.can_start_operation = False
             self.use_anchor = None
 
-            self.reset_state()
-            self.goal_poses = self.get_goal_poses(self.use_anchor)
             self.start_navigation()
 
 

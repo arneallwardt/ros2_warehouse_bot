@@ -107,3 +107,4 @@ Use the keyboard teleoperation to move the bot around to create a map. After tha
 
 ## Misc
 - use this to reset turtlebot movement: `ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'`
+- use this to open gripper of Open Manipulator `ros2 service call /open_manipulator/goal_tool_control open_manipulator_msgs/srv/SetJointPosition "{joint_position: {joint_name: ['gripper'], position: [0.01]}, path_time: 2.0}"`
