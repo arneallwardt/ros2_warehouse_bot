@@ -9,7 +9,7 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
 - **ROS2 packages:**
   - Packages for TurtleBot3: `sudo apt install ros-humbe-turtlebot3*`
   - colcon: `sudo apt install python3-colcon-common-extensions`
-  - SetUp OpenManipulator: See Appendix [here](./paper.pdf)
+  - SetUp OpenManipulator: See Appendix [here](./static/paper.pdf)
 - **Python packages:**
   - dotenv: `pip install python-dotenv`
 - **warehouse_bot packages**
@@ -90,7 +90,7 @@ Ensure the testing environment is set up properly: (For usage in KI-lab)
   </div>
 </div>
 
-**Start Operation**: `ros2 topic pub --once /begin_operation warehouse_bot_interfaces/msg/BeginOperation "{use_anchor: false}" --qos-reliability reliable`
+**Start Operation**: `ros2 service call /begin_operation warehouse_bot_interfaces/srv/BeginOperation "{use_anchor: false}"`
 - You can set `use_anchor: true` if you want to use poses in between. This _should_ make navigation more but seems to be causing problems since robot does not consistently position well in anchor state. Therefore it is not recommended to use. 
 - _Possible Error:_ Sometimes the TurtleBot will beep one time and stop during navigation. This is probably due to low battery. Try changing the battery and restarting the bot. 
 
@@ -107,3 +107,4 @@ Use the keyboard teleoperation to move the bot around to create a map. After tha
 
 ## Misc
 - use this to reset turtlebot movement: `ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'`
+- use this to open gripper of Open Manipulator `ros2 service call /open_manipulator/goal_tool_control open_manipulator_msgs/srv/SetJointPosition "{joint_position: {joint_name: ['gripper'], position: [0.01]}, path_time: 2.0}"`
