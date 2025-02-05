@@ -6,7 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from transitions import Machine
 from warehouse_bot_interfaces.action import AlignProduct, ManipulateProduct, MoveBack 
-from warehouse_bot_interfaces.msg import BeginOperation
+from warehouse_bot_interfaces.srv import BeginOperation
 from open_manipulator_msgs.srv import SetJointPosition
 import os
 from dotenv import load_dotenv
@@ -15,27 +15,19 @@ class WarehouseBotMain(Node):
     def __init__(self):
         super().__init__('warehouse_bot_main')
 
-        qos_profile = QoSProfile(
-            reliability=ReliabilityPolicy.RELIABLE,
-            depth=10
-        )
-        self._begin_operation_subscription = self.create_subscription(
-            BeginOperation,
-            'begin_operation',
-            self.begin_operation_callback,
-            qos_profile
-        )
-
         self._navigate_to_pose_action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._align_product_action_client = ActionClient(self, AlignProduct, 'align_product')
         self._manipulate_product_action_client = ActionClient(self, ManipulateProduct, 'manipulate_product')
         self._move_back_action_client = ActionClient(self, MoveBack, 'move_back')
 
         self._joint_postion_client = self.create_client(SetJointPosition, '/open_manipulator/goal_joint_space_path')
-        #self._begin_operation_service = self.create_service(BeginOperation, 'begin_operation', self.begin_operation_callback)
+        self._begin_operation_service = self.create_service(BeginOperation, '/begin_operation', self.begin_operation_callback)
+        self._begin_operation_timer = self.create_timer(0.5, self.try_begin_operation)
         # pose information
         self.next_goal_pose_idx = 0
         self.is_holding_product = False
+        self.can_start_operation = False
+        self.use_anchor = None
 
         self.goal_poses = []
 
@@ -97,15 +89,31 @@ class WarehouseBotMain(Node):
         
     ### OPERATION CALLBACK ###
 
-    def begin_operation_callback(self, msg):
+    def try_begin_operation(self):
+
+        if self.can_start_operation and self.use_anchor is not None:
+
+            self.can_start_operation = False
+            self.use_anchor = None
+
+            self.reset_state()
+            self.goal_poses = self.get_goal_poses(self.use_anchor)
+            self.start_navigation()
+
+
+    def begin_operation_callback(self, request, response):
 
         if self.state != 'idle':
-            self.get_logger().error(f'Cannot start operation from state {self.state}!')
+            response.success = False
+            response.message = f'Cannot start operation from state {self.state}!'
+            return response
 
-        self.reset_state()
-        self.goal_poses = self.get_goal_poses(msg.use_anchor)
+        self.can_start_operation = True
+        self.use_anchor = request.use_anchor
 
-        self.start_navigation()
+        response.success = True
+        response.message = f'Starting operation! Using anchor poses? {request.use_anchor}!'
+        return response
     
     
     def get_goal_poses(self, use_anchor):
