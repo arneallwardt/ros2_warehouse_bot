@@ -11,7 +11,7 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
   - colcon: `sudo apt install python3-colcon-common-extensions`
   - SetUp OpenManipulator: See Appendix [here](./static/paper.pdf)
 - **Python packages:**
-  - dotenv: `pip install python-dotenv`
+  - dotenv: `pip install python-dotenv==1.0.1`
 - **warehouse_bot packages**
   - Clone this repository inside a new directory
   - Build packages (from inside new directory): `colcon build`
@@ -26,8 +26,8 @@ This section covers setting up the Virtual Machine (VM) and the TurtleBot3, incl
   - slam_toolbox: `sudo apt install ros-humble-slam-toolbox`
   - Interfaces for OpenManipulator: `open_manipulator_msgs` (see above)
 - **Python packages:**
-  - dotenv: `pip install python-dotenv`
-  - transitions: `pip install transitions`
+  - dotenv: `pip install python-dotenv==1.0.1`
+  - transitions: `pip install transitions==0.9.2`
 - **warehouse_bot packages**
   - Clone this repository inside a new directory
   - Build packages (from inside new directory): `colcon build`
